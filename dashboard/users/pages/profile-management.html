@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Management - LGU 3 MSME Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../css/style.css">
+    <style>
+        .profile-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 24px;
+        }
+
+        .profile-side {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .profile-main {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .avatar-upload {
+            text-align: center;
+            padding: 32px;
+            background: white;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .profile-avatar-large {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 16px;
+            border: 4px solid var(--primary-color);
+        }
+
+        .form-section {
+            background: white;
+            padding: 32px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .doc-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            background: #F8FAFC;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-top: 12px;
+        }
+
+        .doc-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .doc-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--primary-color);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../../logo.png" alt="PH Logo" class="gov-logo">
+                <div class="header-text">
+                    <h1>LGU 3</h1>
+                    <p>MSME Portal</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="../index.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li class="active"><a href="#"><i class="fas fa-id-card"></i> <span>My Profile</span></a></li>
+                    <li><a href="my-products.html"><i class="fas fa-box"></i> <span>My Products</span></a></li>
+                    <li><a href="compliance-status.html"><i class="fas fa-check-double"></i> <span>Compliance
+                                Status</span></a></li>
+                    <li><a href="my-training.html"><i class="fas fa-certificate"></i> <span>My Training</span></a></li>
+                    <li><a href="applied-incentives.html"><i class="fas fa-hand-holding-usd"></i> <span>Applied
+                                Incentives</span></a></li>
+                    <li><a href="market-insights.html"><i class="fas fa-chart-line"></i> <span>Market
+                                Insights</span></a></li>
+                </ul>
+
+                <div class="nav-divider"></div>
+
+                <ul>
+                    <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+                    <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+                    <li class="logout"><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <button id="toggle-sidebar" class="icon-btn"><i class="fas fa-bars"></i></button>
+                    <h2>Profile Management</h2>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="profile-container">
+                    <div class="profile-side">
+                        <div class="avatar-upload">
+                            <img src="https://ui-avatars.com/api/?name=Bukidnon+Farms&background=00205B&color=fff&size=200"
+                                alt="Enterprise Logo" class="profile-avatar-large">
+                            <h4>Bukidnon Farms Co.</h4>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Founded: 2018</p>
+                            <button class="btn-action" style="width: 100%;">Change Logo</button>
+                        </div>
+
+                        <div class="form-section">
+                            <h4 style="margin-bottom: 16px;">Quick Actions</h4>
+                            <button class="btn-secondary" style="width: 100%; margin-bottom: 12px; text-align: left;"><i
+                                    class="fas fa-key"></i> Change Password</button>
+                            <button class="btn-secondary" style="width: 100%; margin-bottom: 12px; text-align: left;"><i
+                                    class="fas fa-shield-alt"></i> 2FA Settings</button>
+                            <button class="btn-secondary"
+                                style="width: 100%; text-align: left; color: var(--danger-color);"><i
+                                    class="fas fa-trash-alt"></i> Deactivate Account</button>
+                        </div>
+                    </div>
+
+                    <div class="profile-main">
+                        <div class="form-section">
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                                <h3>Enterprise Information</h3>
+                                <button class="btn-primary" onclick="alert('Profile Saved!')">Save Changes</button>
+                            </div>
+
+                            <form class="form-grid">
+                                <div class="form-group full-width">
+                                    <label>Registered Business Name</label>
+                                    <input type="text" value="Bukidnon Farms Coffee & Plantation Co.">
+                                </div>
+                                <div class="form-group">
+                                    <label>Sector / Category</label>
+                                    <select>
+                                        <option>Agriculture</option>
+                                        <option>Food Processing</option>
+                                        <option>Retail</option>
+                                        <option>Manufacturing</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>DTI / SEC Number</label>
+                                    <input type="text" value="BN-123456789">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label>Business Address</label>
+                                    <input type="text" value="Zone 3, Barangay Poblacion, LGU 3 District">
+                                </div>
+                                <div class="form-group">
+                                    <label>Contact Number</label>
+                                    <input type="tel" value="0917 123 4567">
+                                </div>
+                                <div class="form-group">
+                                    <label>Email Address</label>
+                                    <input type="email" value="contact@bukidnonfarms.com">
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 style="margin-bottom: 24px;">Owner / Representative Details</h3>
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label>Representative Name</label>
+                                    <input type="text" value="Juana Dela Cruz">
+                                </div>
+                                <div class="form-group">
+                                    <label>Position</label>
+                                    <input type="text" value="General Manager / Owner">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section">
+                            <h3 style="margin-bottom: 16px;">Verified Documents</h3>
+                            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">Manage your
+                                business legal documents for verification.</p>
+
+                            <div class="doc-card">
+                                <div class="doc-info">
+                                    <div class="doc-icon"><i class="fas fa-file-invoice"></i></div>
+                                    <div>
+                                        <div style="font-weight: 600;">Mayor's Permit 2024</div>
+                                        <div style="font-size: 11px; color: var(--success-color);">Verified & Active
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="btn-action">Replace</button>
+                            </div>
+
+                            <div class="doc-card">
+                                <div class="doc-info">
+                                    <div class="doc-icon"><i class="fas fa-file-contract"></i></div>
+                                    <div>
+                                        <div style="font-weight: 600;">DTI Registration</div>
+                                        <div style="font-size: 11px; color: var(--success-color);">Verified & Active
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="btn-action">Replace</button>
+                            </div>
+
+                            <div class="doc-card" style="border-style: dashed; background: transparent;">
+                                <div class="doc-info">
+                                    <div class="doc-icon" style="background: #eee; color: #999;"><i
+                                            class="fas fa-plus"></i></div>
+                                    <div>
+                                        <div style="font-weight: 600; color: #999;">Export Certification</div>
+                                        <div style="font-size: 11px; color: var(--text-muted);">Not Uploaded</div>
+                                    </div>
+                                </div>
+                                <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;">Upload
+                                    File</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../../js/main.js"></script>
+</body>
+
+</html>

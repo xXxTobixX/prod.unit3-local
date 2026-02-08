@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Training - LGU 3 MSME Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../../css/style.css">
+    <style>
+        .training-tabs {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .tab-user {
+            padding: 12px 4px;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .tab-user.active {
+            color: var(--primary-color);
+        }
+
+        .tab-user.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+        .training-card-user {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            border: 1px solid var(--border-color);
+            display: grid;
+            grid-template-columns: 100px 1fr 200px;
+            gap: 32px;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .training-icon-user {
+            width: 100px;
+            height: 100px;
+            background: var(--primary-light);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: white;
+        }
+
+        .progress-indicator {
+            margin-top: 16px;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .cert-card {
+            background: #F8FAFC;
+            border: 1px dashed var(--border-color);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="../../logo.png" alt="PH Logo" class="gov-logo">
+                <div class="header-text">
+                    <h1>LGU 3</h1>
+                    <p>MSME Portal</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li><a href="../index.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li><a href="profile-management.html"><i class="fas fa-id-card"></i> <span>My Profile</span></a>
+                    </li>
+                    <li><a href="my-products.html"><i class="fas fa-box"></i> <span>My Products</span></a></li>
+                    <li><a href="compliance-status.html"><i class="fas fa-check-double"></i> <span>Compliance
+                                Status</span></a></li>
+                    <li class="active"><a href="#"><i class="fas fa-certificate"></i> <span>My Training</span></a></li>
+                    <li><a href="applied-incentives.html"><i class="fas fa-hand-holding-usd"></i> <span>Applied
+                                Incentives</span></a></li>
+                    <li><a href="market-insights.html"><i class="fas fa-chart-line"></i> <span>Market
+                                Insights</span></a></li>
+                </ul>
+
+                <div class="nav-divider"></div>
+
+                <ul>
+                    <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+                    <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+                    <li class="logout"><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <button id="toggle-sidebar" class="icon-btn"><i class="fas fa-bars"></i></button>
+                    <h2>Capacity Building & Training</h2>
+                </div>
+                <div class="header-right">
+                    <button class="btn-primary" onclick="alert('Redirecting to Program Catalog...')"><i
+                            class="fas fa-search"></i> Find More Programs</button>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="training-tabs">
+                    <div class="tab-user active">In Progress (2)</div>
+                    <div class="tab-user">Completed (5)</div>
+                    <div class="tab-user">Waitlisted</div>
+                </div>
+
+                <!-- Training 1 -->
+                <div class="training-card-user">
+                    <div class="training-icon-user" style="background: var(--primary-color);">
+                        <i class="fas fa-laptop-code"></i>
+                    </div>
+                    <div class="training-info">
+                        <span class="status-pill-user pill-valid"
+                            style="background: rgba(59, 130, 246, 0.1); color: var(--primary-color);">Category:
+                            Digitalization</span>
+                        <h3 style="margin-top: 12px;">E-commerce & Digital Marketing for MSMEs</h3>
+                        <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Mastering online sales
+                            platforms, social media promotion, and digital payment integration.</p>
+
+                        <div class="progress-indicator" style="max-width: 400px;">
+                            <div class="progress-label">
+                                <span>Curriculum Progress</span>
+                                <strong>75%</strong>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 75%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="training-actions">
+                        <button class="btn-primary" style="width: 100%; margin-bottom: 12px;">Continue Learning</button>
+                        <button class="btn-secondary" style="width: 100%;">View Curriculum</button>
+                    </div>
+                </div>
+
+                <!-- Training 2 -->
+                <div class="training-card-user">
+                    <div class="training-icon-user" style="background: var(--secondary-color);">
+                        <i class="fas fa-ship"></i>
+                    </div>
+                    <div class="training-info">
+                        <span class="status-pill-user pill-valid"
+                            style="background: rgba(139, 92, 246, 0.1); color: var(--secondary-color);">Category:
+                            Exporting</span>
+                        <h3 style="margin-top: 12px;">Export Mastery Path: Logistics & Shipping</h3>
+                        <p style="font-size: 14px; color: var(--text-muted); margin-top: 8px;">Understanding
+                            international shipping terms, containerization, and customs documentation.</p>
+
+                        <div class="progress-indicator" style="max-width: 400px;">
+                            <div class="progress-label">
+                                <span>Curriculum Progress</span>
+                                <strong>30%</strong>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 30%; background: var(--secondary-color);"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="training-actions">
+                        <button class="btn-primary"
+                            style="width: 100%; margin-bottom: 12px; background: var(--secondary-color);">Continue
+                            Learning</button>
+                        <button class="btn-secondary" style="width: 100%;">View Curriculum</button>
+                    </div>
+                </div>
+
+                <div style="margin-top: 48px;">
+                    <h3 style="margin-bottom: 24px;">Recently Earned Certificates</h3>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;">
+                        <div class="cert-card">
+                            <i class="fas fa-award"
+                                style="font-size: 32px; color: var(--accent-color); margin-bottom: 12px;"></i>
+                            <div style="font-weight: 700;">Financial Literacy</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Earned: Jan 2024
+                            </div>
+                            <button class="btn-action" style="margin-top: 12px; width: 100%;"><i
+                                    class="fas fa-download"></i> Download</button>
+                        </div>
+                        <div class="cert-card">
+                            <i class="fas fa-award"
+                                style="font-size: 32px; color: var(--accent-color); margin-bottom: 12px;"></i>
+                            <div style="font-weight: 700;">Food Safety Standards</div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Earned: Dec 2023
+                            </div>
+                            <button class="btn-action" style="margin-top: 12px; width: 100%;"><i
+                                    class="fas fa-download"></i> Download</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../../js/main.js"></script>
+</body>
+
+</html>
