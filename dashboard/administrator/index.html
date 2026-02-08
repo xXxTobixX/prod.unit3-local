@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LGU 3 - Administrative Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <img src="logo.png" alt="PH Logo" class="gov-logo">
+                <div class="header-text">
+                    <h1>LGU 3</h1>
+                    <p>Administrative Portal</p>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li class="active"><a href="#"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li><a href="#"><i class="fas fa-user-shield"></i> <span>User Management</span></a></li>
+                    <li><a href="#"><i class="fas fa-building"></i> <span>Product & MSME Registry</span></a></li>
+                    <li><a href="#"><i class="fas fa-clipboard-check"></i> <span>Compliance Monitoring</span></a></li>
+                    <li><a href="#"><i class="fas fa-graduation-cap"></i> <span>Program & Training</span></a></li>
+                    <li><a href="#"><i class="fas fa-handshake"></i> <span>Market & Trade Management</span></a></li>
+                    <li><a href="#"><i class="fas fa-gift"></i> <span>Incentives & Support</span></a></li>
+                    <li><a href="#"><i class="fas fa-chart-bar"></i> <span>Reports & Analytics</span></a></li>
+                </ul>
+
+                <div class="nav-divider"></div>
+
+                <ul>
+                    <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+                    <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+                    <li class="logout"><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <button id="toggle-sidebar" class="icon-btn"><i class="fas fa-bars"></i></button>
+                    <h2>Overview Dashboard</h2>
+                </div>
+
+                <div class="header-right">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search records...">
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <span class="user-name">Hon. Admin</span>
+                            <span class="user-role">Administrator</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=00205B&color=fff" alt="User Avatar"
+                            class="avatar">
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <!-- Statistics Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-users-viewfinder"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Total Registered</h3>
+                            <p class="stat-number">12,840</p>
+                            <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> 5.2% vs last month</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Pending Requests</h3>
+                            <p class="stat-number">432</p>
+                            <span class="stat-trend negative"><i class="fas fa-clock"></i> Urgent Action Required</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon yellow">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Disbursement</h3>
+                            <p class="stat-number">₱ 45.2M</p>
+                            <span class="stat-trend positive"><i class="fas fa-check-circle"></i> On Track</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="stat-details">
+                            <h3>Public Services</h3>
+                            <p class="stat-number">98%</p>
+                            <span class="stat-trend positive"><i class="fas fa-smile"></i> High Satisfaction</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Grid -->
+                <div class="main-grid">
+                    <div class="recent-requests card">
+                        <div class="card-header">
+                            <h3>Recent Applications</h3>
+                            <a href="#" class="view-all">View All</a>
+                        </div>
+                        <div class="table-container">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Ref No.</th>
+                                        <th>Applicant</th>
+                                        <th>Service Type</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="ref">#PH-2024-001</td>
+                                        <td>
+                                            <div class="table-user">
+                                                <div class="name">Juan Dela Cruz</div>
+                                                <div class="email">juan.dc@email.com</div>
+                                            </div>
+                                        </td>
+                                        <td>Business Permit</td>
+                                        <td>Feb 07, 2024</td>
+                                        <td><span class="status status-pending">Pending</span></td>
+                                        <td><button class="btn-action">Review</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ref">#PH-2024-002</td>
+                                        <td>
+                                            <div class="table-user">
+                                                <div class="name">Maria Santos</div>
+                                                <div class="email">m.santos@email.com</div>
+                                            </div>
+                                        </td>
+                                        <td>Health Clearance</td>
+                                        <td>Feb 06, 2024</td>
+                                        <td><span class="status status-approved">Approved</span></td>
+                                        <td><button class="btn-action">View</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ref">#PH-2024-003</td>
+                                        <td>
+                                            <div class="table-user">
+                                                <div class="name">Ricardo Reyes</div>
+                                                <div class="email">r.reyes@email.com</div>
+                                            </div>
+                                        </td>
+                                        <td>ID Renewal</td>
+                                        <td>Feb 05, 2024</td>
+                                        <td><span class="status status-rejected">Rejected</span></td>
+                                        <td><button class="btn-action">Review</button></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="ref">#PH-2024-004</td>
+                                        <td>
+                                            <div class="table-user">
+                                                <div class="name">Liza Lopez</div>
+                                                <div class="email">liza.l@email.com</div>
+                                            </div>
+                                        </td>
+                                        <td>Travel Authority</td>
+                                        <td>Feb 04, 2024</td>
+                                        <td><span class="status status-approved">Approved</span></td>
+                                        <td><button class="btn-action">View</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="project-tracker card">
+                        <div class="card-header">
+                            <h3>Regional Progress</h3>
+                        </div>
+                        <div class="project-list">
+                            <div class="project-item">
+                                <div class="project-info">
+                                    <span>Luzon Digitalization</span>
+                                    <span>85%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 85%;"></div>
+                                </div>
+                            </div>
+                            <div class="project-item">
+                                <div class="project-info">
+                                    <span>Visayas Infra Upgrade</span>
+                                    <span>42%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress orange" style="width: 42%;"></div>
+                                </div>
+                            </div>
+                            <div class="project-item">
+                                <div class="project-info">
+                                    <span>Mindanao Health System</span>
+                                    <span>68%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress blue" style="width: 68%;"></div>
+                                </div>
+                            </div>
+                            <div class="project-item">
+                                <div class="project-info">
+                                    <span>National ID Rollout</span>
+                                    <span>92%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress green" style="width: 92%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="system-announcement">
+                            <h4><i class="fas fa-info-circle"></i> System Notice</h4>
+                            <p>Monthly auditing period starts tomorrow. Please ensure all records are updated.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../js/main.js"></script>
+</body>
+
+</html>
