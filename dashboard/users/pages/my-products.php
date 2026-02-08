@@ -1,3 +1,8 @@
+<?php 
+require_once '../../../includes/init.php'; 
+if (!isLoggedIn()) { redirect('../../../login.php'); } 
+if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php'); } 
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -16,7 +21,7 @@
         }
 
         .product-card-user {
-            background: white;
+            background: var(--card-bg);
             border-radius: 16px;
             overflow: hidden;
             border: 1px solid var(--border-color);
@@ -47,7 +52,7 @@
             border-radius: 20px;
             font-size: 11px;
             font-weight: 700;
-            background: white;
+            background: var(--card-bg);
             box-shadow: var(--shadow-sm);
         }
 
@@ -61,7 +66,7 @@
             align-items: center;
             margin-top: 16px;
             padding-top: 16px;
-            border-top: 1px solid #f1f5f9;
+            border-top: 1px solid var(--border-color);
         }
 
         .export-badge-user {
@@ -81,7 +86,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../../logo.png" alt="PH Logo" class="gov-logo">
+                <img src="../../../images/logo.png" alt="PH Logo" class="gov-logo">
                 <div class="header-text">
                     <h1>LGU 3</h1>
                     <p>MSME Portal</p>
@@ -90,16 +95,16 @@
 
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="../index.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li><a href="profile-management.html"><i class="fas fa-id-card"></i> <span>My Profile</span></a>
+                    <li><a href="../index.php"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li><a href="profile-management.php"><i class="fas fa-id-card"></i> <span>My Profile</span></a>
                     </li>
                     <li class="active"><a href="#"><i class="fas fa-box"></i> <span>My Products</span></a></li>
-                    <li><a href="compliance-status.html"><i class="fas fa-check-double"></i> <span>Compliance
+                    <li><a href="compliance-status.php"><i class="fas fa-check-double"></i> <span>Compliance
                                 Status</span></a></li>
-                    <li><a href="my-training.html"><i class="fas fa-certificate"></i> <span>My Training</span></a></li>
-                    <li><a href="applied-incentives.html"><i class="fas fa-hand-holding-usd"></i> <span>Applied
+                    <li><a href="my-training.php"><i class="fas fa-certificate"></i> <span>My Training</span></a></li>
+                    <li><a href="applied-incentives.php"><i class="fas fa-hand-holding-usd"></i> <span>Applied
                                 Incentives</span></a></li>
-                    <li><a href="market-insights.html"><i class="fas fa-chart-line"></i> <span>Market
+                    <li><a href="market-insights.php"><i class="fas fa-chart-line"></i> <span>Market
                                 Insights</span></a></li>
                 </ul>
 
@@ -120,6 +125,26 @@
                     <h2>My Product Portfolio</h2>
                 </div>
                 <div class="header-right">
+                    <div class="theme-toggle" title="Toggle Theme">
+                        <div class="theme-switch">
+                            <div class="theme-switch-handle">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">2</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <span class="user-name"><?php echo htmlspecialchars(                            <span class="user-name">Juana Dela Cruz</span>SESSION["user_name"]); ?></span>
+                            <span class="user-role">Business Owner</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=Juana+Dela+Cruz&background=00205B&color=fff"
+                            alt="User Avatar" class="avatar">
+                    </div>
                     <button class="btn-primary" onclick="alert('Opening Product Submission Form...')"><i
                             class="fas fa-plus"></i> Register New Product</button>
                 </div>
@@ -201,3 +226,4 @@
 </body>
 
 </html>
+

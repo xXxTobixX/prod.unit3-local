@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="css/landing.css">
+    <link rel="stylesheet" href="css/landing.css?v=2.0">
 </head>
 
 <body>
@@ -16,7 +16,7 @@
     <nav class="navbar">
         <div class="container">
             <div class="logo">
-                <img src="images/logo.png" alt="LGU 3 Logo">
+                <img src="images/logo.png" alt="PH Logo">
                 <div class="logo-text">
                     <span class="lgu-name">Local Government Unit 3</span>
                     <span class="lgu-sub">Local Product & Export Development</span>
@@ -24,21 +24,22 @@
             </div>
             <div class="nav-right">
                 <ul class="nav-links">
+                    <li><a href="#home">Home</a></li>
                     <li><a href="#services">Services</a></li>
                     <li><a href="#about">About Us</a></li>
                     <li><a href="#how-it-works">How It Works</a></li>
                     <li><a href="#news">News</a></li>
                 </ul>
                 <div class="nav-btns">
-                    <a href="login.html" class="btn-nav-login">Login</a>
-                    <a href="signup.html" class="btn-nav-signup">Sign Up</a>
+                    <a href="login.php" class="btn-nav-login">Login</a>
+                    <a href="signup.php" class="btn-nav-signup">Sign Up</a>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <header class="hero">
+    <header id="home" class="hero">
         <div class="container">
             <div class="hero-content">
                 <span class="badge">Welcome to Local Government Unit 3 Official Portal</span>
@@ -47,7 +48,8 @@
                     matching, and export assistance to scale your business globally.</p>
                 <div class="hero-btns">
                     <a href="#services" class="primary-btn">Explore Services</a>
-                    <a href="#" class="secondary-btn"><i class="fas fa-play-circle"></i> Watch How it Works</a>
+                    <a href="#how-it-works" class="secondary-btn"><i class="fas fa-arrow-circle-right"></i> Get Started
+                        Guide</a>
                 </div>
             </div>
             <div class="hero-image">
@@ -57,7 +59,7 @@
                 </div>
                 <div class="floating-card c2">
                     <i class="fas fa-users"></i>
-                    <span>12k+ Registered Citizens</span>
+                    <span>12k+ Registered Users</span>
                 </div>
                 <img src="https://images.unsplash.com/photo-1573164067507-40616da10c71?q=80&w=2070&auto=format&fit=crop"
                     alt="Digital PH" class="main-img">
@@ -113,7 +115,7 @@
                     <div class="icon-box yellow"><i class="fas fa-tasks"></i></div>
                     <h3>Application Tracking</h3>
                     <p>Monitor the real-time status of your requests and pending applications.</p>
-                    <a href="index.html">Track Now <i class="fas fa-arrow-right"></i></a>
+                    <a href="index.php">Track Now <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="service-card">
                     <div class="icon-box green"><i class="fas fa-bell"></i></div>
@@ -424,6 +426,7 @@
         </div>
     </div>
 
+    <script src="js/news-api.js"></script>
     <script src="js/landing.js"></script>
 </body>
 

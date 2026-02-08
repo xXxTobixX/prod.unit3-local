@@ -133,13 +133,14 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             padding: 32px;
             border-radius: 20px;
             width: 100%;
             max-width: 650px;
             box-shadow: var(--shadow-lg);
             position: relative;
+            color: var(--text-main);
         }
 
         .close-modal {
@@ -211,7 +212,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../logo.png" alt="PH Logo" class="gov-logo">
+                <img src="../../../images/logo.png" alt="PH Logo" class="gov-logo">
                 <div class="header-text">
                     <h1>LGU 3</h1>
                     <p>Administrative Portal</p>
@@ -220,20 +221,20 @@
 
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="../index.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li><a href="user-management.html"><i class="fas fa-user-shield"></i> <span>User
+                    <li><a href="../index.php"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li><a href="user-management.php"><i class="fas fa-user-shield"></i> <span>User
                                 Management</span></a></li>
                     <li class="active"><a href="#"><i class="fas fa-building"></i> <span>Product & MSME
                                 Registry</span></a></li>
-                    <li><a href="compliance-monitoring.html"><i class="fas fa-clipboard-check"></i> <span>Compliance
+                    <li><a href="compliance-monitoring.php"><i class="fas fa-clipboard-check"></i> <span>Compliance
                                 Monitoring</span></a></li>
-                    <li><a href="program-training.html"><i class="fas fa-graduation-cap"></i> <span>Program &
+                    <li><a href="program-training.php"><i class="fas fa-graduation-cap"></i> <span>Program &
                                 Training</span></a></li>
-                    <li><a href="market-opportunities.html"><i class="fas fa-handshake"></i> <span>Market & Trade
+                    <li><a href="market-opportunities.php"><i class="fas fa-handshake"></i> <span>Market & Trade
                                 Management</span></a></li>
-                    <li><a href="incentives-assistance.html"><i class="fas fa-gift"></i> <span>Incentives &
+                    <li><a href="incentives-assistance.php"><i class="fas fa-gift"></i> <span>Incentives &
                                 Support</span></a></li>
-                    <li><a href="reports-analytics.html"><i class="fas fa-chart-bar"></i> <span>Reports &
+                    <li><a href="reports-analytics.php"><i class="fas fa-chart-bar"></i> <span>Reports &
                                 Analytics</span></a></li>
                 </ul>
 
@@ -259,6 +260,14 @@
                     <div class="search-bar">
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Search products or enterprises...">
+                    </div>
+                    <div class="theme-toggle" title="Toggle Theme">
+                        <div class="theme-switch">
+                            <div class="theme-switch-handle">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                        </div>
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>

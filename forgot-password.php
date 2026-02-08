@@ -8,14 +8,14 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="css/auth.css">
+    <link rel="stylesheet" href="css/auth.css?v=2.0">
 </head>
 
 <body>
     <div class="auth-container">
         <div class="auth-box">
             <div class="auth-header">
-                <a href="login.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Login</a>
+                <a href="login.php" class="back-link"><i class="fas fa-arrow-left"></i> Back to Login</a>
                 <h2>Forgot Password?</h2>
                 <p>No worries, we'll send you reset instructions. Please enter your registered email address.</p>
             </div>
@@ -33,7 +33,7 @@
             </form>
 
             <div class="auth-footer">
-                <p>Remember your password? <a href="login.html">Sign In</a></p>
+                <p>Remember your password? <a href="login.php">Sign In</a></p>
             </div>
         </div>
 

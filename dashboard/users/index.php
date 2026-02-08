@@ -1,3 +1,12 @@
+<?php 
+require_once '../../includes/init.php'; 
+if (!isLoggedIn()) {
+    redirect('../../login.php');
+}
+if (!$_SESSION['profile_completed']) {
+    redirect('../../complete-profile.php');
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -15,26 +24,26 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../logo.png" alt="PH Logo" class="gov-logo">
+                <img src="../../images/logo.png" alt="PH Logo" class="gov-logo">
                 <div class="header-text">
                     <h1>LGU 3</h1>
-                    <p>MSME Portal</p>
+                    <p>USERS Portal</p>
                 </div>
             </div>
 
             <nav class="sidebar-nav">
                 <ul>
                     <li class="active"><a href="#"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li><a href="pages/profile-management.html"><i class="fas fa-id-card"></i> <span>My
+                    <li><a href="pages/profile-management.php"><i class="fas fa-id-card"></i> <span>My
                                 Profile</span></a></li>
-                    <li><a href="pages/my-products.html"><i class="fas fa-box"></i> <span>My Products</span></a></li>
-                    <li><a href="pages/compliance-status.html"><i class="fas fa-check-double"></i> <span>Compliance
+                    <li><a href="pages/my-products.php"><i class="fas fa-box"></i> <span>My Products</span></a></li>
+                    <li><a href="pages/compliance-status.php"><i class="fas fa-check-double"></i> <span>Compliance
                                 Status</span></a></li>
-                    <li><a href="pages/my-training.html"><i class="fas fa-certificate"></i> <span>My Training</span></a>
+                    <li><a href="pages/my-training.php"><i class="fas fa-certificate"></i> <span>My Training</span></a>
                     </li>
-                    <li><a href="pages/applied-incentives.html"><i class="fas fa-hand-holding-usd"></i> <span>Applied
+                    <li><a href="pages/applied-incentives.php"><i class="fas fa-hand-holding-usd"></i> <span>Applied
                                 Incentives</span></a></li>
-                    <li><a href="pages/market-insights.html"><i class="fas fa-chart-line"></i> <span>Market
+                    <li><a href="pages/market-insights.php"><i class="fas fa-chart-line"></i> <span>Market
                                 Insights</span></a></li>
                 </ul>
 
@@ -53,7 +62,7 @@
             <header class="top-header">
                 <div class="header-left">
                     <button id="toggle-sidebar" class="icon-btn"><i class="fas fa-bars"></i></button>
-                    <h2>Welcome, Bukidnon Farms!</h2>
+                    <h2>Welcome, <?php echo htmlspecialchars(html_entity_decode($_SESSION['business_name'] ?? $_SESSION['user_name'], ENT_QUOTES, 'UTF-8')); ?>!</h2>
                 </div>
 
                 <div class="header-right">
@@ -61,16 +70,24 @@
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Search my data...">
                     </div>
+                    <div class="theme-toggle" title="Toggle Theme">
+                        <div class="theme-switch">
+                            <div class="theme-switch-handle">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                        </div>
+                    </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
                         <span class="badge">2</span>
                     </div>
                     <div class="user-profile">
                         <div class="user-info">
-                            <span class="user-name">Juana Dela Cruz</span>
+                            <span class="user-name"><?php echo htmlspecialchars(html_entity_decode($_SESSION['user_name'], ENT_QUOTES, 'UTF-8')); ?></span>
                             <span class="user-role">Business Owner</span>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=Juana+Dela+Cruz&background=00205B&color=fff"
+                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode(html_entity_decode($_SESSION['user_name'], ENT_QUOTES, 'UTF-8')); ?>&background=00205B&color=fff"
                             alt="User Avatar" class="avatar">
                     </div>
                 </div>

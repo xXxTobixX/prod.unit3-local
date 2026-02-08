@@ -54,7 +54,7 @@
         }
 
         .role-badge {
-            background: #F1F5F9;
+            background: var(--bg-color);
             color: var(--text-main);
             padding: 4px 10px;
             border-radius: 6px;
@@ -83,13 +83,14 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             padding: 32px;
             border-radius: 20px;
             width: 100%;
             max-width: 500px;
             box-shadow: var(--shadow-lg);
             position: relative;
+            color: var(--text-main);
         }
 
         .modal-header {
@@ -149,13 +150,19 @@
         }
 
         .btn-secondary {
-            background: #F1F5F9;
-            color: var(--text-main);
-            border: none;
+            background: #334155;
+            color: #F8FAFC;
+            border: 1px solid #475569;
             padding: 10px 20px;
             border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+            border-color: #64748B;
         }
 
         .switch {
@@ -207,10 +214,10 @@
 
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar (Reused from dashboard/administrator/index.html) -->
+        <!-- Sidebar (Reused from dashboard/administrator/index.php) -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../logo.png" alt="PH Logo" class="gov-logo">
+                <img src="../../../images/logo.png" alt="PH Logo" class="gov-logo">
                 <div class="header-text">
                     <h1>LGU 3</h1>
                     <p>Administrative Portal</p>
@@ -219,20 +226,20 @@
 
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="../index.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li><a href="../index.php"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
                     <li class="active"><a href="#"><i class="fas fa-user-shield"></i> <span>User Management</span></a>
                     </li>
-                    <li><a href="product-registry.html"><i class="fas fa-building"></i> <span>Product & MSME
+                    <li><a href="product-registry.php"><i class="fas fa-building"></i> <span>Product & MSME
                                 Registry</span></a></li>
-                    <li><a href="compliance-monitoring.html"><i class="fas fa-clipboard-check"></i> <span>Compliance
+                    <li><a href="compliance-monitoring.php"><i class="fas fa-clipboard-check"></i> <span>Compliance
                                 Monitoring</span></a></li>
-                    <li><a href="program-training.html"><i class="fas fa-graduation-cap"></i> <span>Program &
+                    <li><a href="program-training.php"><i class="fas fa-graduation-cap"></i> <span>Program &
                                 Training</span></a></li>
-                    <li><a href="market-opportunities.html"><i class="fas fa-handshake"></i> <span>Market & Trade
+                    <li><a href="market-opportunities.php"><i class="fas fa-handshake"></i> <span>Market & Trade
                                 Management</span></a></li>
-                    <li><a href="incentives-assistance.html"><i class="fas fa-gift"></i> <span>Incentives &
+                    <li><a href="incentives-assistance.php"><i class="fas fa-gift"></i> <span>Incentives &
                                 Support</span></a></li>
-                    <li><a href="reports-analytics.html"><i class="fas fa-chart-bar"></i> <span>Reports &
+                    <li><a href="reports-analytics.php"><i class="fas fa-chart-bar"></i> <span>Reports &
                                 Analytics</span></a></li>
                 </ul>
 
@@ -258,6 +265,14 @@
                     <div class="search-bar">
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Search users by name, email or role...">
+                    </div>
+                    <div class="theme-toggle" title="Toggle Theme">
+                        <div class="theme-switch">
+                            <div class="theme-switch-handle">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                        </div>
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
@@ -293,7 +308,6 @@
                                     <th>Role</th>
                                     <th>Access Level</th>
                                     <th>Status</th>
-                                    <th>Account Status</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -309,13 +323,6 @@
                                     <td><span class="role-badge">Super Admin</span></td>
                                     <td><span class="access-level">Full Permissions</span></td>
                                     <td><span class="status-pill status-active">Active</span></td>
-                                    <td>
-                                        <label class="switch">
-                                            <input type="checkbox" checked
-                                                onchange="toggleUserStatus(1001, this.checked)">
-                                            <span class="slider"></span>
-                                        </label>
-                                    </td>
                                     <td>
                                         <button class="btn-action" title="Edit User" onclick="openModal('edit', 1001)">
                                             <i class="fas fa-edit"></i>
@@ -334,13 +341,6 @@
                                     <td><span class="access-level">Update Records</span></td>
                                     <td><span class="status-pill status-active">Active</span></td>
                                     <td>
-                                        <label class="switch">
-                                            <input type="checkbox" checked
-                                                onchange="toggleUserStatus(1002, this.checked)">
-                                            <span class="slider"></span>
-                                        </label>
-                                    </td>
-                                    <td>
                                         <button class="btn-action" title="Edit User" onclick="openModal('edit', 1002)">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -357,12 +357,6 @@
                                     <td><span class="role-badge">Vendor Admin</span></td>
                                     <td><span class="access-level">Shop Management</span></td>
                                     <td><span class="status-pill status-inactive">Deactivated</span></td>
-                                    <td>
-                                        <label class="switch">
-                                            <input type="checkbox" onchange="toggleUserStatus(1003, this.checked)">
-                                            <span class="slider"></span>
-                                        </label>
-                                    </td>
                                     <td>
                                         <button class="btn-action" title="Edit User" onclick="openModal('edit', 1003)">
                                             <i class="fas fa-edit"></i>
@@ -398,22 +392,27 @@
                     <label for="role">User Role</label>
                     <select id="role" required>
                         <option value="">Select Role</option>
-                        <option value="Super Admin">Super Admin</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Staff">Staff</option>
-                        <option value="Vendor Admin">Vendor Admin</option>
-                        <option value="Content Editor">Content Editor</option>
+                        <option value="LGU Administrator">LGU Administrator</option>
+                        <option value="Export Development Officer">Export Development Officer</option>
+                        <option value="Product Quality Specialist">Product Quality Specialist</option>
+                        <option value="MSME Coordinator">MSME Coordinator</option>
+                        <option value="Training & Compliance Officer">Training & Compliance Officer</option>
+                        <option value="Market Analyst">Market Analyst</option>
+                        <option value="Vendor/Producer">Vendor/Producer</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label for="accessLevel">Access Level</label>
                     <select id="accessLevel" required>
                         <option value="">Select Access Level</option>
-                        <option value="Full Permissions">Full Permissions</option>
-                        <option value="Update Records">Update Records</option>
-                        <option value="Shop Management">Shop Management</option>
-                        <option value="View Only">View Only</option>
-                        <option value="Restricted Access">Restricted Access</option>
+                        <option value="Full System Access">Full System Access</option>
+                        <option value="Product Registry Management">Product Registry Management</option>
+                        <option value="Export Documentation">Export Documentation</option>
+                        <option value="Training Program Management">Training Program Management</option>
+                        <option value="Market Opportunities">Market Opportunities</option>
+                        <option value="Compliance Monitoring">Compliance Monitoring</option>
+                        <option value="Vendor Portal Access">Vendor Portal Access</option>
+                        <option value="View Reports Only">View Reports Only</option>
                     </select>
                 </div>
                 <div class="modal-footer">

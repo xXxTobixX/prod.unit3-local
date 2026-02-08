@@ -17,7 +17,7 @@
         }
 
         .grant-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 16px;
             padding: 24px;
             border: 1px solid var(--border-color);
@@ -72,7 +72,7 @@
         }
 
         .stat-card-mini {
-            background: white;
+            background: var(--card-bg);
             padding: 20px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
@@ -97,14 +97,14 @@
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #E2E8F0;
+            background: var(--border-color);
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 12px;
             font-weight: 700;
             margin-bottom: 8px;
-            border: 2px solid white;
+            border: 2px solid var(--card-bg);
         }
 
         .step.active .step-circle {
@@ -129,7 +129,7 @@
             left: 10%;
             width: 80%;
             height: 2px;
-            background: #E2E8F0;
+            background: var(--border-color);
             z-index: 0;
         }
 
@@ -195,11 +195,12 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             padding: 32px;
             border-radius: 20px;
             width: 100%;
             max-width: 600px;
+            color: var(--text-main);
         }
 
         .form-row {
@@ -216,7 +217,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../logo.png" alt="PH Logo" class="gov-logo">
+                <img src="../../../images/logo.png" alt="PH Logo" class="gov-logo">
                 <div class="header-text">
                     <h1>LGU 3</h1>
                     <p>Administrative Portal</p>
@@ -224,20 +225,20 @@
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="../index.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li><a href="user-management.html"><i class="fas fa-user-shield"></i> <span>User
+                    <li><a href="../index.php"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li><a href="user-management.php"><i class="fas fa-user-shield"></i> <span>User
                                 Management</span></a></li>
-                    <li><a href="product-registry.html"><i class="fas fa-building"></i> <span>Product & MSME
+                    <li><a href="product-registry.php"><i class="fas fa-building"></i> <span>Product & MSME
                                 Registry</span></a></li>
-                    <li><a href="compliance-monitoring.html"><i class="fas fa-clipboard-check"></i> <span>Compliance
+                    <li><a href="compliance-monitoring.php"><i class="fas fa-clipboard-check"></i> <span>Compliance
                                 Monitoring</span></a></li>
-                    <li><a href="program-training.html"><i class="fas fa-graduation-cap"></i> <span>Program &
+                    <li><a href="program-training.php"><i class="fas fa-graduation-cap"></i> <span>Program &
                                 Training</span></a></li>
-                    <li><a href="market-opportunities.html"><i class="fas fa-handshake"></i> <span>Market & Trade
+                    <li><a href="market-opportunities.php"><i class="fas fa-handshake"></i> <span>Market & Trade
                                 Management</span></a></li>
                     <li class="active"><a href="#"><i class="fas fa-gift"></i> <span>Incentives & Support</span></a>
                     </li>
-                    <li><a href="reports-analytics.html"><i class="fas fa-chart-bar"></i> <span>Reports &
+                    <li><a href="reports-analytics.php"><i class="fas fa-chart-bar"></i> <span>Reports &
                                 Analytics</span></a></li>
                 </ul>
 
@@ -256,6 +257,28 @@
                 <div class="header-left">
                     <button id="toggle-sidebar" class="icon-btn"><i class="fas fa-bars"></i></button>
                     <h2>Financial Incentives & Assistance</h2>
+                </div>
+                <div class="header-right">
+                    <div class="theme-toggle" title="Toggle Theme">
+                        <div class="theme-switch">
+                            <div class="theme-switch-handle">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <span class="user-name">Hon. Admin</span>
+                            <span class="user-role">Administrator</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=00205B&color=fff" alt="User Avatar"
+                            class="avatar">
+                    </div>
                 </div>
             </header>
 
@@ -436,7 +459,7 @@
                 </div>
             </div>
 
-            <div style="background: #F8FAFC; padding: 20px; border-radius: 12px; margin-bottom: 24px;">
+            <div style="background: var(--bg-color); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div>
                         <div style="font-size: 12px; color: var(--text-muted);">Enterprise Name</div>

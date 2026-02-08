@@ -17,7 +17,7 @@
         }
 
         .checklist-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 16px;
             padding: 24px;
             box-shadow: var(--shadow-sm);
@@ -33,7 +33,11 @@
         }
 
         .checklist-item:hover {
-            background: #F8FAFC;
+            background: rgba(0, 0, 0, 0.02);
+        }
+
+        body.dark-mode .checklist-item:hover {
+            background: rgba(255, 255, 255, 0.03);
         }
 
         .checklist-info {
@@ -96,7 +100,7 @@
         .validation-item {
             padding: 12px;
             border-radius: 10px;
-            background: #F1F5F9;
+            background: var(--bg-color);
             margin-bottom: 12px;
         }
 
@@ -110,7 +114,7 @@
 
         .progress-mini {
             height: 6px;
-            background: #E2E8F0;
+            background: var(--border-color);
             border-radius: 10px;
             overflow: hidden;
         }
@@ -135,12 +139,13 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             padding: 32px;
             border-radius: 20px;
             width: 100%;
             max-width: 600px;
             position: relative;
+            color: var(--text-main);
         }
     </style>
 </head>
@@ -150,7 +155,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../logo.png" alt="PH Logo" class="gov-logo">
+                <img src="../../../images/logo.png" alt="PH Logo" class="gov-logo">
                 <div class="header-text">
                     <h1>LGU 3</h1>
                     <p>Administrative Portal</p>
@@ -158,20 +163,20 @@
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="../index.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li><a href="user-management.html"><i class="fas fa-user-shield"></i> <span>User
+                    <li><a href="../index.php"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li><a href="user-management.php"><i class="fas fa-user-shield"></i> <span>User
                                 Management</span></a></li>
-                    <li><a href="product-registry.html"><i class="fas fa-building"></i> <span>Product & MSME
+                    <li><a href="product-registry.php"><i class="fas fa-building"></i> <span>Product & MSME
                                 Registry</span></a></li>
                     <li class="active"><a href="#"><i class="fas fa-clipboard-check"></i> <span>Compliance
                                 Monitoring</span></a></li>
-                    <li><a href="program-training.html"><i class="fas fa-graduation-cap"></i> <span>Program &
+                    <li><a href="program-training.php"><i class="fas fa-graduation-cap"></i> <span>Program &
                                 Training</span></a></li>
-                    <li><a href="market-opportunities.html"><i class="fas fa-handshake"></i> <span>Market & Trade
+                    <li><a href="market-opportunities.php"><i class="fas fa-handshake"></i> <span>Market & Trade
                                 Management</span></a></li>
-                    <li><a href="incentives-assistance.html"><i class="fas fa-gift"></i> <span>Incentives &
+                    <li><a href="incentives-assistance.php"><i class="fas fa-gift"></i> <span>Incentives &
                                 Support</span></a></li>
-                    <li><a href="reports-analytics.html"><i class="fas fa-chart-bar"></i> <span>Reports &
+                    <li><a href="reports-analytics.php"><i class="fas fa-chart-bar"></i> <span>Reports &
                                 Analytics</span></a></li>
                 </ul>
 
@@ -192,6 +197,26 @@
                     <h2>Compliance & Permit Monitoring</h2>
                 </div>
                 <div class="header-right">
+                    <div class="theme-toggle" title="Toggle Theme">
+                        <div class="theme-switch">
+                            <div class="theme-switch-handle">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <span class="user-name">Hon. Admin</span>
+                            <span class="user-role">Administrator</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=00205B&color=fff" alt="User Avatar"
+                            class="avatar">
+                    </div>
                     <div class="search-bar"><i class="fas fa-search"></i><input type="text"
                             placeholder="Search MSME Records..."></div>
                 </div>
@@ -261,8 +286,9 @@
                         </div>
 
                         <div style="margin-top: 32px; display: flex; justify-content: flex-end; gap: 12px;">
-                            <button class="btn-secondary">Flag Revision</button>
-                            <button class="btn-primary" onclick="validateAll()">Finalize Validation</button>
+                            <button class="btn-secondary"><i class="fas fa-flag"></i> Flag Revision</button>
+                            <button class="btn-primary" onclick="validateAll()"><i class="fas fa-check-circle"></i>
+                                Finalize Validation</button>
                         </div>
                     </div>
 

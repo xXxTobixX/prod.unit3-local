@@ -1,3 +1,8 @@
+<?php 
+require_once '../../../includes/init.php'; 
+if (!isLoggedIn()) { redirect('../../../login.php'); } 
+if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php'); } 
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -22,7 +27,7 @@
         }
 
         .doc-item {
-            background: white;
+            background: var(--card-bg);
             padding: 24px;
             border-radius: 16px;
             border: 1px solid var(--border-color);
@@ -62,7 +67,7 @@
         .health-meter {
             text-align: center;
             padding: 40px 24px;
-            background: white;
+            background: var(--card-bg);
             border-radius: 20px;
             border: 1px solid var(--border-color);
             position: sticky;
@@ -84,18 +89,20 @@
 
         .circle-bg {
             fill: none;
-            stroke: #f1f5f9;
+            stroke: var(--border-color);
             stroke-width: 8;
         }
 
         .circle-bar {
             fill: none;
-            stroke: var(--primary-color);
-            stroke-width: 8;
+            stroke: var(--success-color);
+            stroke-width: 10;
             stroke-dasharray: 440;
             stroke-dashoffset: 66;
             /* 85% */
             stroke-linecap: round;
+            filter: drop-shadow(0 0 5px rgba(16, 185, 129, 0.3));
+            transition: all 0.5s ease;
         }
 
         .percentage-text {
@@ -103,9 +110,24 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 800;
-            color: var(--primary-color);
+            color: var(--success-color);
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+
+        body.dark-mode .percentage-text {
+            color: #10b981;
+            text-shadow: 0 0 25px rgba(16, 185, 129, 0.4);
+        }
+
+        body.dark-mode .circle-bar {
+            stroke: #10b981;
+            filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.5));
+        }
+
+        body.dark-mode .circle-bg {
+            stroke: rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
@@ -115,7 +137,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../../logo.png" alt="PH Logo" class="gov-logo">
+                <img src="../../../images/logo.png" alt="PH Logo" class="gov-logo">
                 <div class="header-text">
                     <h1>LGU 3</h1>
                     <p>MSME Portal</p>
@@ -124,16 +146,16 @@
 
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="../index.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li><a href="profile-management.html"><i class="fas fa-id-card"></i> <span>My Profile</span></a>
+                    <li><a href="../index.php"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li><a href="profile-management.php"><i class="fas fa-id-card"></i> <span>My Profile</span></a>
                     </li>
-                    <li><a href="my-products.html"><i class="fas fa-box"></i> <span>My Products</span></a></li>
+                    <li><a href="my-products.php"><i class="fas fa-box"></i> <span>My Products</span></a></li>
                     <li class="active"><a href="#"><i class="fas fa-check-double"></i> <span>Compliance
                                 Status</span></a></li>
-                    <li><a href="my-training.html"><i class="fas fa-certificate"></i> <span>My Training</span></a></li>
-                    <li><a href="applied-incentives.html"><i class="fas fa-hand-holding-usd"></i> <span>Applied
+                    <li><a href="my-training.php"><i class="fas fa-certificate"></i> <span>My Training</span></a></li>
+                    <li><a href="applied-incentives.php"><i class="fas fa-hand-holding-usd"></i> <span>Applied
                                 Incentives</span></a></li>
-                    <li><a href="market-insights.html"><i class="fas fa-chart-line"></i> <span>Market
+                    <li><a href="market-insights.php"><i class="fas fa-chart-line"></i> <span>Market
                                 Insights</span></a></li>
                 </ul>
 
@@ -152,6 +174,30 @@
                 <div class="header-left">
                     <button id="toggle-sidebar" class="icon-btn"><i class="fas fa-bars"></i></button>
                     <h2>Compliance & Regulatory Status</h2>
+                </div>
+                <div class="header-right">
+                    <div class="theme-toggle" title="Toggle Theme">
+                        <div class="theme-switch">
+                            <div class="theme-switch-handle">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">2</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <span class="user-name"><?php echo htmlspecialchars(                            <span class="user-name">Juana Dela Cruz</span>SESSION["user_name"]); ?></span>
+                            <span class="user-role">Business Owner</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=Juana+Dela+Cruz&background=00205B&color=fff"
+                            alt="User Avatar" class="avatar">
+                    </div>
+                    <button class="btn-secondary" onclick="window.print()"><i class="fas fa-download"></i> Download
+                        Report</button>
                 </div>
             </header>
 
@@ -248,3 +294,4 @@
 </body>
 
 </html>
+

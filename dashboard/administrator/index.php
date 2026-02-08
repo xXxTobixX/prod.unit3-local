@@ -15,7 +15,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="logo.png" alt="PH Logo" class="gov-logo">
+                <img src="../../images/logo.png" alt="PH Logo" class="gov-logo">
                 <div class="header-text">
                     <h1>LGU 3</h1>
                     <p>Administrative Portal</p>
@@ -25,19 +25,19 @@
             <nav class="sidebar-nav">
                 <ul>
                     <li class="active"><a href="#"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li><a href="pages/user-management.html"><i class="fas fa-user-shield"></i> <span>User
+                    <li><a href="pages/user-management.php"><i class="fas fa-user-shield"></i> <span>User
                                 Management</span></a></li>
-                    <li><a href="pages/product-registry.html"><i class="fas fa-building"></i> <span>Product & MSME
+                    <li><a href="pages/product-registry.php"><i class="fas fa-building"></i> <span>Product & MSME
                                 Registry</span></a></li>
-                    <li><a href="pages/compliance-monitoring.html"><i class="fas fa-clipboard-check"></i>
+                    <li><a href="pages/compliance-monitoring.php"><i class="fas fa-clipboard-check"></i>
                             <span>Compliance Monitoring</span></a></li>
-                    <li><a href="pages/program-training.html"><i class="fas fa-graduation-cap"></i> <span>Program &
+                    <li><a href="pages/program-training.php"><i class="fas fa-graduation-cap"></i> <span>Program &
                                 Training</span></a></li>
-                    <li><a href="pages/market-opportunities.html"><i class="fas fa-handshake"></i> <span>Market & Trade
+                    <li><a href="pages/market-opportunities.php"><i class="fas fa-handshake"></i> <span>Market & Trade
                                 Management</span></a></li>
-                    <li><a href="pages/incentives-assistance.html"><i class="fas fa-gift"></i> <span>Incentives &
+                    <li><a href="pages/incentives-assistance.php"><i class="fas fa-gift"></i> <span>Incentives &
                                 Support</span></a></li>
-                    <li><a href="pages/reports-analytics.html"><i class="fas fa-chart-bar"></i> <span>Reports &
+                    <li><a href="pages/reports-analytics.php"><i class="fas fa-chart-bar"></i> <span>Reports &
                                 Analytics</span></a></li>
                 </ul>
 
@@ -63,6 +63,14 @@
                     <div class="search-bar">
                         <i class="fas fa-search"></i>
                         <input type="text" placeholder="Search records...">
+                    </div>
+                    <div class="theme-toggle" title="Toggle Theme">
+                        <div class="theme-switch">
+                            <div class="theme-switch-handle">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                        </div>
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>

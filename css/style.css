@@ -25,6 +25,130 @@
     --shadow-lg: 0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
 }
 
+body.dark-mode {
+    --bg-color: #0f172a;
+    --card-bg: #1e293b;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    --sidebar-bg: #020617;
+    --header-bg: rgba(30, 41, 59, 0.8);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode h1,
+body.dark-mode h2,
+body.dark-mode h3,
+body.dark-mode h4,
+body.dark-mode h5,
+body.dark-mode h6,
+body.dark-mode .user-name,
+body.dark-mode .name,
+body.dark-mode .stat-number,
+body.dark-mode label,
+body.dark-mode strong,
+body.dark-mode .user-info span {
+    color: #ffffff !important;
+}
+
+body.dark-mode .user-role,
+body.dark-mode .email,
+body.dark-mode .stat-details h3,
+body.dark-mode .access-level,
+body.dark-mode .info-item label,
+body.dark-mode .spec-label {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .ref,
+body.dark-mode .view-all,
+body.dark-mode .system-announcement h4,
+body.dark-mode .doc-preview,
+body.dark-mode .stat-icon.blue {
+    color: #60a5fa !important;
+}
+
+body.dark-mode .stat-icon.blue {
+    background: rgba(96, 165, 250, 0.1) !important;
+}
+
+body.dark-mode input:not([type="checkbox"]):not([type="radio"]),
+body.dark-mode select,
+body.dark-mode textarea {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+    border-color: #475569 !important;
+}
+
+body.dark-mode input::placeholder {
+    color: #94a3b8 !important;
+}
+
+body.dark-mode .user-info div,
+body.dark-mode .user-info span,
+body.dark-mode .table-user div,
+body.dark-mode .table-user span,
+body.dark-mode [style*="color: var(--primary-color)"],
+body.dark-mode [style*="color: var(--secondary-color)"],
+body.dark-mode i[style*="var(--primary-color)"],
+body.dark-mode .grant-card h4,
+body.dark-mode .kpi-card div[style*="color: var(--primary-color)"],
+body.dark-mode .kpi-card div[style*="color: var(--secondary-color)"],
+body.dark-mode #appID,
+body.dark-mode #modalTitle {
+    color: #ffffff !important;
+}
+
+body.dark-mode .tab-item.active,
+body.dark-mode .tab-user.active {
+    color: #60a5fa !important;
+}
+
+body.dark-mode .tab-item.active::after,
+body.dark-mode .tab-user.active::after {
+    background: #60a5fa !important;
+}
+
+body.dark-mode table tr:hover {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-mode .btn-action {
+    background: #334155 !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode .btn-action:hover {
+    background: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+
+body.dark-mode th {
+    background: #1e293b;
+    color: #94a3b8;
+}
+
+body.dark-mode .icon-btn:hover {
+    background: #334155 !important;
+}
+
+body.dark-mode .top-header {
+    background: var(--header-bg) !important;
+}
+
+body.dark-mode .system-announcement {
+    background: rgba(255, 255, 255, 0.03) !important;
+}
+
+body.dark-mode .progress-bar {
+    background: #334155 !important;
+}
+
+body.dark-mode .modal-overlay {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -138,6 +262,7 @@ body.collapsed-sidebar .sidebar .sidebar-nav i {
     font-weight: 500;
     border-radius: 8px;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
 .sidebar-nav li.active a {
@@ -469,6 +594,10 @@ td {
     font-size: 14px;
 }
 
+table tr:hover {
+    background: rgba(0, 32, 91, 0.02);
+}
+
 .ref {
     font-weight: 700;
     color: var(--primary-color);
@@ -572,6 +701,84 @@ td {
     border-left: 4px solid var(--primary-color);
 }
 
+/* Premium Theme Toggle Switch */
+.theme-toggle-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch {
+    width: 48px;
+    height: 24px;
+    background: #e2e8f0;
+    border-radius: 20px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode .theme-switch {
+    background: #334155;
+    border-color: #475569;
+}
+
+.theme-switch-handle {
+    width: 18px;
+    height: 18px;
+    background: #ffffff;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 3px;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    color: #f59e0b;
+}
+
+body.dark-mode .theme-switch-handle {
+    left: 25px;
+    background: #1e293b;
+    color: #60a5fa;
+}
+
+.theme-switch-handle i {
+    transition: all 0.3s ease;
+}
+
+.theme-switch-handle .fa-sun {
+    opacity: 1;
+}
+
+.theme-switch-handle .fa-moon {
+    opacity: 0;
+    position: absolute;
+}
+
+body.dark-mode .theme-switch-handle .fa-sun {
+    opacity: 0;
+    position: absolute;
+}
+
+body.dark-mode .theme-switch-handle .fa-moon {
+    opacity: 1;
+    position: static;
+}
+
+.theme-toggle {
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .system-announcement h4 {
     font-size: 14px;
     color: var(--primary-color);
@@ -631,4 +838,250 @@ td {
     .stats-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ========================================
+   UNIFIED BUTTON STYLES FOR ALL ADMIN PAGES
+   ======================================== */
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 32, 91, 0.2);
+}
+
+.btn-primary:hover {
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 32, 91, 0.3);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.btn-secondary {
+    background: #64748B;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(100, 116, 139, 0.2);
+}
+
+.btn-secondary:hover {
+    background: #475569;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.3);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
+.btn-success {
+    background: var(--success-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.btn-success:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:active {
+    transform: translateY(0);
+}
+
+.btn-warning {
+    background: var(--warning-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+
+.btn-warning:hover {
+    background: #D97706;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.btn-warning:active {
+    transform: translateY(0);
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
+}
+
+.btn-danger:hover {
+    background: #DC2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-danger:active {
+    transform: translateY(0);
+}
+
+/* Modal Overlay Styling */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Logout Modal Specific Styling */
+.logout-modal {
+    background: var(--card-bg);
+    width: 400px;
+    padding: 40px;
+    border-radius: 24px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid var(--border-color);
+    transform: translateY(20px) scale(0.95);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active .logout-modal {
+    transform: translateY(0) scale(1);
+}
+
+.logout-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 24px;
+}
+
+.logout-modal h2 {
+    font-size: 24px;
+    margin-bottom: 12px;
+    color: var(--text-main);
+}
+
+.logout-modal p {
+    color: var(--text-muted);
+    font-size: 15px;
+    margin-bottom: 32px;
+    line-height: 1.6;
+}
+
+.logout-modal-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.btn-logout-confirm,
+.btn-logout-cancel {
+    flex: 1;
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-logout-confirm {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-logout-confirm:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-logout-cancel {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+body.dark-mode .btn-logout-cancel {
+    background: #334155;
+    color: #cbd5e1;
+}
+
+.btn-logout-cancel:hover {
+    background: #e2e8f0;
+}
+
+body.dark-mode .btn-logout-cancel:hover {
+    background: #475569;
 }

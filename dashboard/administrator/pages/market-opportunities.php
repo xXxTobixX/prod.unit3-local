@@ -46,7 +46,7 @@
         }
 
         .opportunity-card {
-            background: white;
+            background: var(--card-bg);
             border-radius: 16px;
             padding: 20px;
             border: 1px solid var(--border-color);
@@ -90,7 +90,7 @@
             gap: 12px;
             margin: 12px 0;
             padding: 12px;
-            background: #F8FAFC;
+            background: var(--bg-color);
             border-radius: 10px;
         }
 
@@ -137,7 +137,7 @@
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <img src="../logo.png" alt="PH Logo" class="gov-logo">
+                <img src="../../../images/logo.png" alt="PH Logo" class="gov-logo">
                 <div class="header-text">
                     <h1>LGU 3</h1>
                     <p>Administrative Portal</p>
@@ -145,20 +145,20 @@
             </div>
             <nav class="sidebar-nav">
                 <ul>
-                    <li><a href="../index.html"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li><a href="user-management.html"><i class="fas fa-user-shield"></i> <span>User
+                    <li><a href="../index.php"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
+                    <li><a href="user-management.php"><i class="fas fa-user-shield"></i> <span>User
                                 Management</span></a></li>
-                    <li><a href="product-registry.html"><i class="fas fa-building"></i> <span>Product & MSME
+                    <li><a href="product-registry.php"><i class="fas fa-building"></i> <span>Product & MSME
                                 Registry</span></a></li>
-                    <li><a href="compliance-monitoring.html"><i class="fas fa-clipboard-check"></i> <span>Compliance
+                    <li><a href="compliance-monitoring.php"><i class="fas fa-clipboard-check"></i> <span>Compliance
                                 Monitoring</span></a></li>
-                    <li><a href="program-training.html"><i class="fas fa-graduation-cap"></i> <span>Program &
+                    <li><a href="program-training.php"><i class="fas fa-graduation-cap"></i> <span>Program &
                                 Training</span></a></li>
                     <li class="active"><a href="#"><i class="fas fa-handshake"></i> <span>Market & Trade
                                 Management</span></a></li>
-                    <li><a href="incentives-assistance.html"><i class="fas fa-gift"></i> <span>Incentives &
+                    <li><a href="incentives-assistance.php"><i class="fas fa-gift"></i> <span>Incentives &
                                 Support</span></a></li>
-                    <li><a href="reports-analytics.html"><i class="fas fa-chart-bar"></i> <span>Reports &
+                    <li><a href="reports-analytics.php"><i class="fas fa-chart-bar"></i> <span>Reports &
                                 Analytics</span></a></li>
                 </ul>
 
@@ -177,6 +177,28 @@
                 <div class="header-left">
                     <button id="toggle-sidebar" class="icon-btn"><i class="fas fa-bars"></i></button>
                     <h2>Market & Trade Opportunities</h2>
+                </div>
+                <div class="header-right">
+                    <div class="theme-toggle" title="Toggle Theme">
+                        <div class="theme-switch">
+                            <div class="theme-switch-handle">
+                                <i class="fas fa-sun"></i>
+                                <i class="fas fa-moon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="user-profile">
+                        <div class="user-info">
+                            <span class="user-name">Hon. Admin</span>
+                            <span class="user-role">Administrator</span>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=Admin&background=00205B&color=fff" alt="User Avatar"
+                            class="avatar">
+                    </div>
                 </div>
             </header>
 

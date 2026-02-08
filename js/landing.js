@@ -49,11 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!isLoggedIn()) {
                 // Redirect to Signup if not logged in
-                window.location.href = 'signup.html';
+                window.location.href = 'signup.php';
             } else {
                 // If logged in, redirect to specific section in dashboard
                 const serviceSlug = serviceName.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-');
-                window.location.href = `index.html#service-${serviceSlug}`;
+                window.location.href = `index.php#service-${serviceSlug}`;
             }
         });
     });
