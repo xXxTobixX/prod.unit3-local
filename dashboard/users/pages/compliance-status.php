@@ -190,7 +190,7 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                     </div>
                     <div class="user-profile">
                         <div class="user-info">
-                            <span class="user-name"><?php echo htmlspecialchars(                            <span class="user-name">Juana Dela Cruz</span>SESSION["user_name"]); ?></span>
+                            <span class="user-name"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></span>
                             <span class="user-role">Business Owner</span>
                         </div>
                         <img src="https://ui-avatars.com/api/?name=Juana+Dela+Cruz&background=00205B&color=fff"

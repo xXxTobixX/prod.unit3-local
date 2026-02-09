@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/Mailer.php';
 
 header('Content-Type: application/json');
 
-$action = $_GET['action'] ?? '';
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 if ($action === 'signup') {
     $firstname = sanitize($_POST['firstname'] ?? '');
@@ -38,7 +38,7 @@ if ($action === 'signup') {
         'email' => $email,
         'password' => $hashed_password,
         'role' => 'user',
-        'status' => 'active'
+        'status' => 'pending'
     ]);
 
     if ($userId) {
@@ -58,14 +58,14 @@ if ($action === 'login') {
     }
 
     $db = db();
-    // Check users table first
-    $user = $db->fetchOne("SELECT * FROM users WHERE email = ?", [$email]);
-    $table = 'users';
+    // Check admins table first for administrative priority
+    $user = $db->fetchOne("SELECT * FROM admins WHERE email = ?", [$email]);
+    $table = 'admins';
 
     if (!$user) {
-        // Check admins table
-        $user = $db->fetchOne("SELECT * FROM admins WHERE email = ?", [$email]);
-        $table = 'admins';
+        // Check users table
+        $user = $db->fetchOne("SELECT * FROM users WHERE email = ?", [$email]);
+        $table = 'users';
     }
 
     if ($user && password_verify($password, $user['password'])) {
@@ -120,12 +120,18 @@ if ($action === 'verify-otp') {
 
     if ($verification) {
         // Valid OTP
-        // Get user/admin data again
-        $user = $db->fetchOne("SELECT * FROM users WHERE email = ?", [$email]);
-        $role = 'user';
+        // Get user/admin data again - Prioritize admins
+        $user = $db->fetchOne("SELECT * FROM admins WHERE email = ?", [$email]);
+        $role = $user['role'] ?? 'admin';
+        
         if (!$user) {
-            $user = $db->fetchOne("SELECT * FROM admins WHERE email = ?", [$email]);
-            $role = $user['role'] ?? 'admin';
+            $user = $db->fetchOne("SELECT * FROM users WHERE email = ?", [$email]);
+            $role = $user['role'] ?? 'user';
+        }
+
+        if (!$user) {
+            echo json_encode(['success' => false, 'message' => 'User account no longer exists.']);
+            exit;
         }
 
         // Set session
@@ -134,7 +140,10 @@ if ($action === 'verify-otp') {
         $_SESSION['user_role'] = $role;
         $_SESSION['user_name'] = $user['firstname'] . ' ' . $user['lastname'];
         $_SESSION['business_name'] = $user['business_name'] ?? null;
-        $_SESSION['profile_completed'] = ($role === 'admin') ? true : (bool)($user['profile_completed'] ?? false);
+        
+        // Administrative roles automatically bypass profile completion
+        $isAdminRole = in_array($role, ['admin', 'staff', 'superadmin', 'manager']);
+        $_SESSION['profile_completed'] = $isAdminRole ? true : (bool)($user['profile_completed'] ?? false);
 
         // Clean up OTP
         $db->delete('otp_verifications', 'email = ?', [$email]);
@@ -143,7 +152,8 @@ if ($action === 'verify-otp') {
             'success' => true, 
             'message' => 'Verification successful!',
             'role' => $role,
-            'profile_completed' => ($role !== 'admin') ? ($user['profile_completed'] ?? false) : true
+            'is_admin' => $isAdminRole,
+            'profile_completed' => $_SESSION['profile_completed']
         ]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Invalid or expired OTP.']);
@@ -151,47 +161,221 @@ if ($action === 'verify-otp') {
 }
 
 if ($action === 'complete-profile') {
-    if (!isLoggedIn()) {
-        echo json_encode(['success' => false, 'message' => 'Unauthorized.']);
+    // Debug logging
+    error_log("Complete Profile Action Triggered");
+    error_log("POST Data: " . print_r($_POST, true));
+    error_log("User ID: " . ($_SESSION['user_id'] ?? 'Not Set'));
+
+    // Add aggressive error reporting for this block
+    ini_set('display_errors', 0); // Don't output errors to HTML, handle them in JSON
+    error_reporting(E_ALL);
+
+    try {
+        if (!isLoggedIn()) {
+            echo json_encode(['success' => false, 'message' => 'Unauthorized.']);
+            exit;
+        }
+
+        $userId = $_SESSION['user_id'];
+        $db = db();
+
+        // Start transaction for atomicity
+        $db->beginTransaction();
+
+        // 1. Update User Record (Business Name, Status)
+        $business_name = sanitize($_POST['business_name'] ?? '');
+        $db->update('users', [
+            'business_name' => $business_name, 
+            'profile_completed' => 1,
+            'status' => 'active'
+        ], 'id = :id', ['id' => $userId]);
+        $_SESSION['business_name'] = $business_name;
+
+        // 2. Insert Business Profile
+        $sector = sanitize($_POST['sector'] ?? '');
+        if ($sector === 'Others' && !empty($_POST['sector_other'])) {
+            $sector = sanitize($_POST['sector_other']);
+        }
+
+        $db->insert('business_profiles', [
+            'user_id' => $userId,
+            'business_type' => sanitize($_POST['business_type'] ?? ''),
+            'sector' => $sector,
+            'address' => sanitize($_POST['business_address'] ?? ''),
+            'registration_number' => sanitize($_POST['registration_number'] ?? ''),
+            'year_started' => (int)($_POST['year_started'] ?? 0),
+            'number_of_workers' => (int)($_POST['number_of_workers'] ?? 0),
+            'compliance_type' => sanitize($_POST['compliance_type'] ?? ''),
+            'data_consent' => isset($_POST['privacy_consent']) ? 1 : 0
+        ]);
+
+        // 3. Insert Product
+        $prodCategory = sanitize($_POST['product_category'] ?? '');
+        if ($prodCategory === 'Others' && !empty($_POST['product_category_other'])) {
+            $prodCategory = sanitize($_POST['product_category_other']);
+        }
+
+        $db->insert('user_products', [
+            'user_id' => $userId,
+            'product_name' => sanitize($_POST['product_name'] ?? ''),
+            'category' => $prodCategory,
+            'description' => sanitize($_POST['product_description'] ?? ''),
+            'production_capacity' => sanitize($_POST['production_capacity'] ?? '') . ' kg'
+        ]);
+        
+        $db->commit();
+        $_SESSION['profile_completed'] = true;
+        echo json_encode(['success' => true, 'message' => 'Profile completed successfully!']);
+    } catch (Throwable $e) {
+        if (isset($db)) {
+            $db->rollback();
+        }
+        error_log("Profile Completion Error: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * Handle MSME Registry Updates (Admin only)
+ */
+if ($action === 'update-msme') {
+    if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin', 'manager'])) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized access.']);
         exit;
     }
 
-    $userId = $_SESSION['user_id'];
-    $db = db();
-
-    // 1. Update User Record (Business Name)
-    $business_name = sanitize($_POST['business_name'] ?? '');
-    $db->update('users', ['business_name' => $business_name, 'profile_completed' => 1], 'id = ?', [$userId]);
-    $_SESSION['business_name'] = $business_name;
-
-    // 2. Insert Business Profile
-    $sector = sanitize($_POST['sector'] ?? '');
-    if ($sector === 'Others' && !empty($_POST['sector_other'])) {
-        $sector = sanitize($_POST['sector_other']);
+    $id = (int)($_POST['userId'] ?? 0);
+    if (!$id) {
+        echo json_encode(['success' => false, 'message' => 'Invalid user ID.']);
+        exit;
     }
 
-    $db->insert('business_profiles', [
-        'user_id' => $userId,
-        'business_type' => sanitize($_POST['business_type'] ?? ''),
-        'sector' => $sector,
-        'address' => sanitize($_POST['business_address'] ?? ''),
-        'registration_number' => sanitize($_POST['registration_number'] ?? ''),
-        'year_started' => (int)($_POST['year_started'] ?? 0),
-        'number_of_workers' => (int)($_POST['number_of_workers'] ?? 0),
-        'compliance_type' => sanitize($_POST['compliance_type'] ?? ''),
-        'data_consent' => isset($_POST['privacy_consent']) ? 1 : 0
-    ]);
+    $fullName = sanitize($_POST['fullName'] ?? '');
+    $email = sanitize($_POST['email'] ?? '');
+    $businessName = sanitize($_POST['businessName'] ?? '');
+    $role = sanitize($_POST['role'] ?? 'user');
+    $status = sanitize($_POST['status'] ?? 'active');
 
-    // 3. Insert Product
-    $db->insert('user_products', [
-        'user_id' => $userId,
-        'product_name' => sanitize($_POST['product_name'] ?? ''),
-        'category' => sanitize($_POST['product_category'] ?? ''),
-        'description' => sanitize($_POST['product_description'] ?? ''),
-        'production_capacity' => sanitize($_POST['production_capacity'] ?? '') . ' kg'
-    ]);
+    if (empty($fullName) || empty($email)) {
+        echo json_encode(['success' => false, 'message' => 'Name and Email are required.']);
+        exit;
+    }
+
+    // Split name into first and last
+    $parts = explode(' ', $fullName, 2);
+    $firstname = $parts[0];
+    $lastname = $parts[1] ?? '';
+
+    try {
+        $db = db();
+        
+        $success = $db->update('users', [
+            'firstname' => $firstname,
+            'lastname' => $lastname,
+            'email' => $email,
+            'business_name' => $businessName,
+            'role' => $role,
+            'status' => $status
+        ], 'id = :target_id', ['target_id' => $id]);
+
+        if ($success || $success === 0) {
+            echo json_encode(['success' => true, 'message' => 'MSME profile updated successfully!']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to execute update on database.']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * Handle Forgot Password Request (Send Code)
+ */
+if ($action === 'forgot-password') {
+    $email = sanitize($_POST['email'] ?? '');
+
+    if (empty($email)) {
+        echo json_encode(['success' => false, 'message' => 'Email address is required.']);
+        exit;
+    }
+
+    $db = db();
+    // Check if email exists
+    $user = $db->fetchOne("SELECT id FROM admins WHERE email = ?", [$email]);
+    if (!$user) {
+        $user = $db->fetchOne("SELECT id FROM users WHERE email = ?", [$email]);
+    }
+
+    if ($user) {
+        $otp = sprintf("%06d", mt_rand(0, 999999));
+        $expires = date('Y-m-d H:i:s', strtotime('+10 minutes'));
+
+        // Delete old OTPs
+        $db->delete('otp_verifications', 'email = ?', [$email]);
+        
+        // Store new OTP
+        $db->insert('otp_verifications', [
+            'email' => $email,
+            'otp_code' => $otp,
+            'expires_at' => $expires
+        ]);
+
+        if (Mailer::sendPasswordReset($email, $otp)) {
+            echo json_encode(['success' => true, 'message' => 'Reset code sent to your email.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to send email. Please try again later.']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Email address not found.']);
+    }
+}
+
+/**
+ * Handle Reset Password (Verify Code & Change Password)
+ */
+if ($action === 'reset-password') {
+    $email = sanitize($_POST['email'] ?? '');
+    $otp = sanitize($_POST['otp'] ?? '');
+    $password = $_POST['password'] ?? '';
+
+    if (empty($email) || empty($otp) || empty($password)) {
+        echo json_encode(['success' => false, 'message' => 'All fields are required.']);
+        exit;
+    }
+
+    $db = db();
     
-    $_SESSION['profile_completed'] = true;
-    echo json_encode(['success' => true, 'message' => 'Profile completed successfully!']);
+    // Verify OTP first
+    $verification = $db->fetchOne(
+        "SELECT * FROM otp_verifications WHERE email = ? AND otp_code = ? AND expires_at > NOW()",
+        [$email, $otp]
+    );
+
+    if ($verification) {
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $updated = false;
+
+        // Try updating admin first if email exists there
+        $admin = $db->fetchOne("SELECT * FROM admins WHERE email = ?", [$email]);
+        if ($admin) {
+            $updated = $db->update('admins', ['password' => $hashed_password], 'email = ?', [$email]);
+        } else {
+            // Try updating user
+            $user = $db->fetchOne("SELECT * FROM users WHERE email = ?", [$email]);
+            if ($user) {
+                $updated = $db->update('users', ['password' => $hashed_password], 'email = ?', [$email]);
+            }
+        }
+
+        if ($updated) {
+            // Clean up OTP
+            $db->delete('otp_verifications', 'email = ?', [$email]);
+            echo json_encode(['success' => true, 'message' => 'Password has been reset successfully.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update password. Account not found.']);
+        }
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid or expired code.']);
+    }
 }
 

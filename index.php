@@ -1,3 +1,11 @@
+<?php
+require_once 'includes/init.php';
+
+// Fetch verification count
+$db = db();
+$userCount = $db->fetchOne("SELECT COUNT(*) as count FROM users")['count'];
+$productCount = $db->fetchOne("SELECT COUNT(*) as count FROM user_products UP JOIN users U ON UP.user_id = U.id WHERE U.status = 'active'")['count'];
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -55,11 +63,11 @@
             <div class="hero-image">
                 <div class="floating-card c1">
                     <i class="fas fa-check-circle"></i>
-                    <span>98% Approval Rate</span>
+                    <span><?php echo number_format($productCount); ?> Approved Products</span>
                 </div>
                 <div class="floating-card c2">
                     <i class="fas fa-users"></i>
-                    <span>12k+ Registered Users</span>
+                    <span><?php echo number_format($userCount); ?> Registered Users</span>
                 </div>
                 <img src="https://images.unsplash.com/photo-1573164067507-40616da10c71?q=80&w=2070&auto=format&fit=crop"
                     alt="Digital PH" class="main-img">

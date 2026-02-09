@@ -1,3 +1,9 @@
+<?php 
+require_once '../../includes/init.php'; 
+if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin', 'manager'])) {
+    redirect('../../login.php');
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -46,7 +52,7 @@
                 <ul>
                     <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
                     <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
-                    <li class="logout"><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
+                    <li class="logout"><a href="../../ajax/auth.php?action=logout"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
             </nav>
         </aside>
@@ -78,10 +84,10 @@
                     </div>
                     <div class="user-profile">
                         <div class="user-info">
-                            <span class="user-name">Hon. Admin</span>
-                            <span class="user-role">Administrator</span>
+                            <span class="user-name"><?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
+                            <span class="user-role"><?php echo ucfirst($_SESSION['user_role']); ?></span>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=00205B&color=fff" alt="User Avatar"
+                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name']); ?>&background=00205B&color=fff" alt="User Avatar"
                             class="avatar">
                     </div>
                 </div>

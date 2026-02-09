@@ -7,7 +7,6 @@ CREATE TABLE IF NOT EXISTS `business_profiles` (
     `user_id` INT NOT NULL,
     `business_type` VARCHAR(100), -- sole prop / coop / association
     `sector` VARCHAR(100),
-    `barangay` VARCHAR(100),
     `address` TEXT,
     `registration_number` VARCHAR(100), -- DTI / SEC / CDA
     `year_started` INT,

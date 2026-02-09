@@ -31,11 +31,12 @@
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group password-group">
                     <label for="password">Password</label>
                     <div class="input-icon">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="password" name="password" placeholder="••••••••" required>
+                        <i class="fas fa-eye toggle-password" id="togglePassword"></i>
                     </div>
                 </div>
 

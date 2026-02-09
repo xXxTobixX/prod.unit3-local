@@ -2,6 +2,23 @@
 require_once '../../../includes/init.php'; 
 if (!isLoggedIn()) { redirect('../../../login.php'); } 
 if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php'); } 
+
+$userId = $_SESSION['user_id'];
+$db = db();
+
+// Fetch user and business profile data
+$query = "SELECT u.*, bp.* 
+          FROM users u 
+          LEFT JOIN business_profiles bp ON u.id = bp.user_id 
+          WHERE u.id = :id";
+$user = $db->fetchOne($query, ['id' => $userId]);
+
+if (!$user) {
+    // Fallback if something is wrong
+    redirect('../../../logout.php');
+}
+
+$fullName = $user['firstname'] . ' ' . $user['lastname'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -349,10 +366,10 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                     </div>
                     <div class="user-profile">
                         <div class="user-info">
-                            <span class="user-name"><?php echo htmlspecialchars(                            <span class="user-name">Juana Dela Cruz</span>SESSION["user_name"]); ?></span>
+                            <span class="user-name"><?php echo htmlspecialchars($fullName); ?></span>
                             <span class="user-role">Business Owner</span>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=Juana+Dela+Cruz&background=00205B&color=fff"
+                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($fullName); ?>&background=00205B&color=fff"
                             alt="User Avatar" class="avatar">
                     </div>
                     <button class="btn-primary" onclick="alert('Changes Saved Successfully!')">Save
@@ -364,11 +381,11 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                 <div class="profile-container">
                     <div class="profile-side">
                         <div class="avatar-upload">
-                            <img src="https://ui-avatars.com/api/?name=Bukidnon+Farms&background=00205B&color=fff&size=200"
+                            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['business_name']); ?>&background=00205B&color=fff&size=200"
                                 alt="Enterprise Logo" class="profile-avatar-large">
-                            <h4 style="font-size: 18px; font-weight: 700;">Bukidnon Farms Co.</h4>
+                            <h4 style="font-size: 18px; font-weight: 700;"><?php echo htmlspecialchars($user['business_name']); ?></h4>
                             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px;">
-                                <i class="fas fa-calendar-alt"></i> Founded: 2018
+                                <i class="fas fa-calendar-alt"></i> Founded: <?php echo htmlspecialchars($user['year_started'] ?? 'N/A'); ?>
                             </p>
                             <button class="btn-primary" style="width: 100%;">
                                 <i class="fas fa-camera"></i> Change Logo
@@ -409,34 +426,36 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                             <form class="form-grid">
                                 <div class="form-group full-width">
                                     <label><i class="fas fa-signature"></i> Registered Business Name</label>
-                                    <input type="text" value="Bukidnon Farms Coffee & Plantation Co."
+                                    <input type="text" value="<?php echo htmlspecialchars($user['business_name']); ?>"
                                         placeholder="Enter business name">
                                 </div>
                                 <div class="form-group">
                                     <label><i class="fas fa-tags"></i> Sector / Category</label>
                                     <select>
-                                        <option>Agriculture</option>
-                                        <option>Food Processing</option>
-                                        <option>Retail</option>
-                                        <option>Manufacturing</option>
+                                        <option <?php echo ($user['sector'] == 'Agriculture') ? 'selected' : ''; ?>>Agriculture</option>
+                                        <option <?php echo ($user['sector'] == 'Food Processing') ? 'selected' : ''; ?>>Food Processing</option>
+                                        <option <?php echo ($user['sector'] == 'Retail') ? 'selected' : ''; ?>>Retail</option>
+                                        <option <?php echo ($user['sector'] == 'Manufacturing') ? 'selected' : ''; ?>>Manufacturing</option>
+                                        <option <?php echo ($user['sector'] == 'Services') ? 'selected' : ''; ?>>Services</option>
+                                        <option <?php echo (!in_array($user['sector'], ['Agriculture', 'Food Processing', 'Retail', 'Manufacturing', 'Services'])) ? 'selected' : ''; ?>>Others</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
                                     <label><i class="fas fa-id-card-alt"></i> DTI / SEC Number</label>
-                                    <input type="text" value="BN-123456789" placeholder="Enter registration number">
+                                    <input type="text" value="<?php echo htmlspecialchars($user['registration_number'] ?? ''); ?>" placeholder="Enter registration number">
                                 </div>
                                 <div class="form-group full-width">
                                     <label><i class="fas fa-map-marker-alt"></i> Business Address</label>
-                                    <input type="text" value="Zone 3, Barangay Poblacion, LGU 3 District"
+                                    <input type="text" value="<?php echo htmlspecialchars($user['address'] ?? ''); ?>"
                                         placeholder="Enter complete address">
                                 </div>
                                 <div class="form-group">
                                     <label><i class="fas fa-phone-alt"></i> Contact Number</label>
-                                    <input type="tel" value="0917 123 4567" placeholder="Enter contact number">
+                                    <input type="tel" value="" placeholder="Enter contact number">
                                 </div>
                                 <div class="form-group">
                                     <label><i class="fas fa-envelope"></i> Email Address</label>
-                                    <input type="email" value="contact@bukidnonfarms.com"
+                                    <input type="email" value="<?php echo htmlspecialchars($user['email']); ?>"
                                         placeholder="Enter email address">
                                 </div>
                             </form>
@@ -452,11 +471,11 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                             <div class="form-grid">
                                 <div class="form-group">
                                     <label><i class="fas fa-user"></i> Representative Name</label>
-                                    <input type="text" value="<?php echo htmlspecialchars(                                    <input type="text" value="Juana Dela Cruz" placeholder="Enter full name">SESSION["user_name"]); ?>" placeholder="Enter full name">
+                                    <input type="text" value="<?php echo htmlspecialchars($fullName); ?>" placeholder="Enter full name">
                                 </div>
                                 <div class="form-group">
                                     <label><i class="fas fa-briefcase"></i> Position</label>
-                                    <input type="text" value="General Manager / Owner" placeholder="Enter position">
+                                    <input type="text" value="Owner / Manager" placeholder="Enter position">
                                 </div>
                             </div>
                         </div>
@@ -476,7 +495,7 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                                 <div class="doc-info">
                                     <div class="doc-icon"><i class="fas fa-file-invoice"></i></div>
                                     <div>
-                                        <div style="font-weight: 600;">Mayor's Permit 2024</div>
+                                        <div style="font-weight: 600;">Mayor's Permit</div>
                                         <div style="font-size: 11px; color: var(--success-color);"><i
                                                 class="fas fa-check-circle"></i> Verified & Active</div>
                                     </div>

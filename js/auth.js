@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             if (data.success) {
                                 showNotification('Verified', 'Redirecting to your dashboard...', 'success');
                                 setTimeout(() => {
-                                    if (data.role === 'admin') {
+                                    if (data.is_admin) {
                                         window.location.href = 'dashboard/administrator/index.php';
                                     } else {
                                         if (data.profile_completed) {
@@ -183,20 +183,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Password Toggle Logic
+    const passwordInput = document.getElementById('password');
+    const togglePassword = document.getElementById('togglePassword');
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            togglePassword.classList.toggle('fa-eye');
+            togglePassword.classList.toggle('fa-eye-slash');
+        });
+    }
+
     // Handle Signup
     if (signupForm) {
-        const passwordInput = document.getElementById('password');
-        const togglePassword = document.getElementById('togglePassword');
         const requirements = document.getElementById('passwordRequirements');
-
-        if (togglePassword) {
-            togglePassword.addEventListener('click', () => {
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-                togglePassword.classList.toggle('fa-eye');
-                togglePassword.classList.toggle('fa-eye-slash');
-            });
-        }
 
         if (passwordInput && requirements) {
             passwordInput.addEventListener('focus', () => requirements.classList.add('visible'));

@@ -78,6 +78,169 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
             border-radius: 4px;
             text-transform: uppercase;
         }
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 20px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: var(--danger-color);
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin: 24px 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-section-title:first-child {
+            margin-top: 0;
+        }
+
+        .form-grid-modal {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-color);
+            color: var(--text-main);
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus, 
+        .form-group select:focus, 
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .file-upload-box {
+            border: 2px dashed var(--border-color);
+            padding: 20px;
+            text-align: center;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-upload-box:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 5px;
+        }
+        
+        .radio-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .modal-footer {
+            padding: 24px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
     </style>
 </head>
 
@@ -139,13 +302,13 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                     </div>
                     <div class="user-profile">
                         <div class="user-info">
-                            <span class="user-name"><?php echo htmlspecialchars(                            <span class="user-name">Juana Dela Cruz</span>SESSION["user_name"]); ?></span>
+                            <span class="user-name"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></span>
                             <span class="user-role">Business Owner</span>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=Juana+Dela+Cruz&background=00205B&color=fff"
+                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name'] ?? 'User'); ?>&background=00205B&color=fff"
                             alt="User Avatar" class="avatar">
                     </div>
-                    <button class="btn-primary" onclick="alert('Opening Product Submission Form...')"><i
+                    <button class="btn-primary" onclick="openModal()"><i
                             class="fas fa-plus"></i> Register New Product</button>
                 </div>
             </header>
@@ -222,8 +385,204 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
         </main>
     </div>
 
-    <script src="../../../js/main.js"></script>
-</body>
+    <!-- Product Registration Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Product Registration Form</h2>
+                <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="productForm">
+                    <!-- 1. Basic Product Information -->
+                    <div class="form-section-title"><i class="fas fa-box"></i> 1. Basic Product Information</div>
+                    <div class="form-grid-modal">
+                        <div class="form-group full-width">
+                            <label>Product Name</label>
+                            <input type="text" placeholder="Enter complete product name" name="product_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Product Category</label>
+                            <select name="product_category" required>
+                                <option value="" disabled selected>Select category</option>
+                                <option value="food">Food Processing</option>
+                                <option value="non-food">Non-Food</option>
+                                <option value="agri">Agri-Business</option>
+                                <option value="handicraft">Handicrafts / Souvenirs</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Intended Market</label>
+                            <select name="intended_market">
+                                <option value="local">Local (Municipality/Provincial)</option>
+                                <option value="national">National</option>
+                                <option value="export">International / Export</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Product Description</label>
+                            <textarea rows="3" placeholder="Describe your product features and benefits" name="product_description"></textarea>
+                        </div>
+                    </div>
 
+                    <!-- 2. Product Details -->
+                    <div class="form-section-title"><i class="fas fa-info-circle"></i> 2. Product Details</div>
+                    <div class="form-grid-modal">
+                        <div class="form-group full-width">
+                            <label>Ingredients / Raw Materials</label>
+                            <textarea rows="2" placeholder="List major ingredients or materials used" name="ingredients"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Production Method</label>
+                            <select name="production_method">
+                                <option value="manual">Manual / Hand-crafted</option>
+                                <option value="semi">Semi-Automated</option>
+                                <option value="automated">Fully Automated</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Shelf Life / Durability</label>
+                            <input type="text" placeholder="e.g. 6 months, 1 year" name="shelf_life">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Packaging Type</label>
+                            <input type="text" placeholder="e.g. Vacuum sealed plastic, Glass jar, Box" name="packaging_type">
+                        </div>
+                    </div>
+
+                    <!-- 3. Production & Capacity -->
+                    <div class="form-section-title"><i class="fas fa-industry"></i> 3. Production & Capacity</div>
+                    <div class="form-grid-modal">
+                        <div class="form-group full-width">
+                            <label>Production Location</label>
+                            <input type="text" placeholder="Complete address of production facility" name="production_location">
+                        </div>
+                        <div class="form-group">
+                            <label>Production Capacity</label>
+                            <input type="text" placeholder="e.g. 1000 units per month" name="production_capacity">
+                        </div>
+                        <div class="form-group">
+                            <label>Available Volume</label>
+                            <input type="text" placeholder="Current stock available" name="available_volume">
+                        </div>
+                    </div>
+
+                    <!-- 4. Pricing Information -->
+                    <div class="form-section-title"><i class="fas fa-tag"></i> 4. Pricing Information</div>
+                    <div class="form-grid-modal">
+                        <div class="form-group">
+                            <label>Cost of Production (PHP)</label>
+                            <input type="number" placeholder="0.00" name="cost_production">
+                        </div>
+                        <div class="form-group">
+                            <label>Suggested Retail Price (PHP)</label>
+                            <input type="number" placeholder="0.00" name="srp">
+                        </div>
+                        <div class="form-group">
+                            <label>Wholesale Price (PHP)</label>
+                            <input type="number" placeholder="0.00" name="wholesale_price">
+                        </div>
+                        <div class="form-group">
+                            <label>Export Price ($) - If applicable</label>
+                            <input type="number" placeholder="0.00" name="export_price">
+                        </div>
+                    </div>
+
+                    <!-- 5. Compliance & Safety Declaration -->
+                    <div class="form-section-title"><i class="fas fa-file-contract"></i> 5. Compliance & Safety</div>
+                    <div class="form-grid-modal">
+                        <div class="form-group">
+                            <label>Type Confirmation</label>
+                             <div class="radio-group">
+                                <label class="radio-label"><input type="radio" name="product_compliance_type" value="food"> Food</label>
+                                <label class="radio-label"><input type="radio" name="product_compliance_type" value="non-food"> Non-Food</label>
+                             </div>
+                        </div>
+                        <div class="form-group">
+                            <label>FDA LTO / Permit #</label>
+                            <input type="text" placeholder="Enter Permit Number if available" name="permit_number">
+                        </div>
+                        <div class="form-group full-width">
+                             <label class="radio-label" style="font-weight: 600; color: var(--primary-color);">
+                                <input type="checkbox" required> I hereby certify that the product information provided is true and correct.
+                             </label>
+                        </div>
+                    </div>
+
+                    <!-- 6. Product Media Upload -->
+                    <div class="form-section-title"><i class="fas fa-images"></i> 6. Product Media</div>
+                    <div class="form-grid-modal">
+                        <div class="form-group full-width">
+                            <label>Product Main Photos</label>
+                            <div class="file-upload-box">
+                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: var(--primary-color); margin-bottom: 8px;"></i>
+                                <p style="font-size: 13px; color: var(--text-muted);">Click to upload main product images</p>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Packaging Photos</label>
+                            <input type="file" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Label Design / Photo</label>
+                            <input type="file" class="form-control">
+                        </div>
+                    </div>
+
+                    <!-- 7. Optional (For Export) -->
+                    <div class="form-section-title"><i class="fas fa-globe"></i> 7. Optional (For Export-Ready)</div>
+                    <div class="form-grid-modal">
+                        <div class="form-group full-width">
+                            <label>Certifications Held</label>
+                            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 5px;">
+                                <label class="radio-label"><input type="checkbox" name="certs[]" value="halal"> Halal</label>
+                                <label class="radio-label"><input type="checkbox" name="certs[]" value="organic"> Organic</label>
+                                <label class="radio-label"><input type="checkbox" name="certs[]" value="gmp"> GMP</label>
+                                <label class="radio-label"><input type="checkbox" name="certs[]" value="haccp"> HACCP</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Export Experience?</label>
+                            <select name="export_exp">
+                                <option value="no">No</option>
+                                <option value="yes">Yes</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Target Export Country</label>
+                            <input type="text" placeholder="e.g. USA, Japan, UAE" name="target_country">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn-primary" onclick="alert('Submission functionality will be connected to database soon.')">Submit Registration</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../../js/main.js"></script>
+    <script>
+        const modal = document.getElementById('productModal');
+
+        function openModal() {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scrolling
+        }
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+    </script>
+</body>
 </html>
 

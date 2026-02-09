@@ -2,6 +2,15 @@
 if (!isLoggedIn()) {
     redirect('login.php');
 }
+
+// Redirect if profile is already completed
+if (isset($_SESSION['profile_completed']) && $_SESSION['profile_completed'] === true) {
+    if (in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin', 'manager'])) {
+        redirect('dashboard/administrator/index.php');
+    } else {
+        redirect('dashboard/users/index.php');
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -383,13 +392,21 @@ if (!isLoggedIn()) {
                 </div>
                 <div class="form-group">
                     <label>Product Category</label>
-                    <select name="product_category" class="input-style" required>
+                    <select name="product_category" id="product-category-select" class="input-style" required>
                         <option value="">Select Category</option>
                         <option value="Food & Beverages">Food & Beverages</option>
                         <option value="Agricultural Produce">Agricultural Produce</option>
                         <option value="Home & Decor">Home & Decor</option>
                         <option value="Fashion & Textiles">Fashion & Textiles</option>
+                        <option value="Others">Others</option>
                     </select>
+                </div>
+                <div class="form-group" id="product-category-others-group" style="display: none; animation: slideUp 0.3s ease-out;">
+                    <label>Please Specify Category</label>
+                    <div class="input-icon">
+                        <i class="fas fa-edit"></i>
+                        <input type="text" name="product_category_other" id="product-category-other-input" placeholder="e.g. Technology & Electronics">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Product Description</label>
@@ -533,6 +550,25 @@ if (!isLoggedIn()) {
                 });
             }
 
+            // Handle Product Category "Others" Selection
+            const prodCatSelect = document.getElementById('product-category-select');
+            const prodCatOthersGroup = document.getElementById('product-category-others-group');
+            const prodCatOtherInput = document.getElementById('product-category-other-input');
+
+            if (prodCatSelect) {
+                prodCatSelect.addEventListener('change', () => {
+                    if (prodCatSelect.value === 'Others') {
+                        prodCatOthersGroup.style.display = 'block';
+                        prodCatOtherInput.setAttribute('required', 'required');
+                        prodCatOtherInput.focus();
+                    } else {
+                        prodCatOthersGroup.style.display = 'none';
+                        prodCatOtherInput.removeAttribute('required');
+                        prodCatOtherInput.value = '';
+                    }
+                });
+            }
+
             const updateStep = () => {
                 steps.forEach((s, idx) => {
                     s.classList.toggle('active', idx === currentStep - 1);
@@ -543,13 +579,21 @@ if (!isLoggedIn()) {
                     ind.classList.toggle('completed', idx < currentStep - 1);
                 });
 
-                btnPrev.style.display = currentStep === 1 ? 'none' : 'block';
-                btnNext.style.display = currentStep === totalSteps ? 'none' : 'block';
-                btnSubmit.style.display = currentStep === totalSteps ? 'block' : 'none';
+                btnPrev.style.display = currentStep === 1 ? 'none' : 'flex';
+                btnNext.style.display = currentStep === totalSteps ? 'none' : 'flex';
+                btnSubmit.style.display = currentStep === totalSteps ? 'flex' : 'none';
 
                 const progress = (currentStep / totalSteps) * 100;
                 progressFill.style.width = `${progress}%`;
             };
+
+            // Force initial display state
+            btnNext.style.display = 'flex';
+            btnPrev.style.display = 'none';
+            btnSubmit.style.display = 'none';
+
+            // Initialize button state
+            setTimeout(updateStep, 100);
 
             btnNext.addEventListener('click', () => {
                 const currentContainer = document.getElementById(`step-${currentStep}`);
@@ -583,30 +627,61 @@ if (!isLoggedIn()) {
                 e.preventDefault();
                 
                 const formData = new FormData(form);
+                formData.append('action', 'complete-profile'); // Ensure action is in POST data
+
+                // Debug FormData
+                for (var pair of formData.entries()) {
+                    console.log(pair[0]+ ', ' + pair[1]); 
+                }
+
                 const btnText = btnSubmit.innerHTML;
                 btnSubmit.disabled = true;
                 btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving Profile...';
 
-                fetch('ajax/auth.php?action=complete-profile', {
+                fetch('ajax/auth.php', { // Removed query param
                     method: 'POST',
                     body: formData
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        showNotification('Success!', 'Your profile is now complete. Redirecting...', 'success');
-                        setTimeout(() => {
-                            window.location.href = 'dashboard/users/index.php';
-                        }, 2000);
-                    } else {
-                        showNotification('Error', data.message, 'error');
+                .then(response => response.text()) // Get as text first
+                .then(text => {
+                    console.log('Raw Server Response:', text);
+                    try {
+                        // Sanitize response: find the JSON object
+                        const jsonStart = text.indexOf('{');
+                        const jsonEnd = text.lastIndexOf('}');
+                        
+                        if (jsonStart === -1 || jsonEnd === -1) {
+                            throw new Error('No JSON object found in response');
+                        }
+
+                        const cleanJson = text.substring(jsonStart, jsonEnd + 1);
+                        const data = JSON.parse(cleanJson);
+                        
+                        console.log('Profile Completion Response:', data); // Debug log
+
+                        if (data.success) {
+                            showNotification('Success!', 'Your profile is now complete. Redirecting...', 'success');
+                            
+                            // Force immediate redirection
+                            btnSubmit.innerHTML = 'Redirecting...';
+                            window.location.href = 'dashboard/users/index.php'; 
+                        } else {
+                            showNotification('Error', data.message, 'error');
+                            btnSubmit.disabled = false;
+                            btnSubmit.innerHTML = btnText;
+                        }
+                    } catch (e) {
+                        console.error('JSON Parse Error:', e);
+                        console.log('Server returned:', text); 
+                        alert("Critical Error: Unable to read server response.\n\n" + text.substring(0, 100)); // Show user the content
+                        showNotification('System Error', 'Server returned an invalid response format.', 'error');
                         btnSubmit.disabled = false;
                         btnSubmit.innerHTML = btnText;
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    showNotification('System Error', 'Failed to save profile. Please try again.', 'error');
+                    console.error('Fetch Error:', error);
+                    showNotification('Network Error', 'Could not communicate with server.', 'error');
                     btnSubmit.disabled = false;
                     btnSubmit.innerHTML = btnText;
                 });
