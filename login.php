@@ -45,7 +45,7 @@
                 </div>
 
                 <div class="captcha-container" id="captcha-box">
-                    <div class="cf-turnstile" data-sitekey="0x4AAAAAAASnSdxS-TykV7X6" data-theme="dark"></div>
+                    <div class="cf-turnstile" data-sitekey="<?php echo defined('TURNSTILE_SITE_KEY') ? TURNSTILE_SITE_KEY : ''; ?>" data-theme="dark"></div>
                     <p class="captcha-loading">Securing your connection...</p>
                 </div>
 

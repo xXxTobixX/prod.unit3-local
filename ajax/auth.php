@@ -57,6 +57,13 @@ if ($action === 'login') {
         exit;
     }
 
+    // Verify CAPTCHA
+    $captchaVerify = verifyTurnstile($_POST['cf-turnstile-response'] ?? null, $_SERVER['REMOTE_ADDR']);
+    if (!$captchaVerify['success']) {
+        echo json_encode(['success' => false, 'message' => $captchaVerify['message']]);
+        exit;
+    }
+
     $db = db();
     // Check admins table first for administrative priority
     $user = $db->fetchOne("SELECT * FROM admins WHERE email = ?", [$email]);

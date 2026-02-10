@@ -80,11 +80,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         startResendTimer();
                     } else {
                         showNotification('Login Failed', data.message, 'error');
+                        if (window.turnstile) turnstile.reset();
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
                     showNotification('System Error', 'An error occurred. Please try again.', 'error');
+                    if (window.turnstile) turnstile.reset();
                 });
         });
 

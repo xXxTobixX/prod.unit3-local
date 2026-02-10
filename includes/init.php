@@ -19,11 +19,15 @@ require_once __DIR__ . '/Database.php';
 
 // Autoloader for future classes (optional)
 spl_autoload_register(function ($class) {
+    // Handle namespace or different file paths if needed
     $file = __DIR__ . '/' . $class . '.php';
     if (file_exists($file)) {
         require_once $file;
     }
 });
+
+// Load Turnstile configuration and helper
+require_once __DIR__ . '/../config/turnstile.php';
 
 /**
  * Get database instance
