@@ -46,7 +46,7 @@
 
                 <div class="captcha-container" id="captcha-box">
                     <div class="cf-turnstile" data-sitekey="<?php echo defined('TURNSTILE_SITE_KEY') ? TURNSTILE_SITE_KEY : ''; ?>" data-theme="dark"></div>
-                    <p class="captcha-loading">Securing your connection...</p>
+                    
                 </div>
 
                 <button type="submit" class="btn-auth">Sign In</button>
@@ -71,7 +71,7 @@
                 <button id="verify-otp" class="btn-auth">Verify Code</button>
 
                 <div class="resend-container">
-                    <p>Didn't receive the code? <a href="#" id="resend-link">Resend in <span id="timer">120</span>s</a>
+                    <p>Didn't receive the code? <a href="#" id="resend-link">Resend in <span id="timer">60</span>s</a>
                     </p>
                 </div>
             </div>

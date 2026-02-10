@@ -2,6 +2,10 @@
 require_once '../../../includes/init.php'; 
 if (!isLoggedIn()) { redirect('../../../login.php'); } 
 if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php'); } 
+
+$userId = $_SESSION['user_id'];
+$db = db();
+$products = $db->fetchAll("SELECT * FROM user_products WHERE user_id = ? ORDER BY created_at DESC", [$userId]);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -315,71 +319,50 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
 
             <div class="content-wrapper">
                 <div class="product-grid-user">
-                    <!-- Product 1 -->
-                    <div class="product-card-user">
-                        <div class="product-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1559056191-7237f00037a3?w=500"
-                                class="product-img-user">
-                            <span class="product-status-tag" style="color: var(--success-color);">Active</span>
+                    <?php if (empty($products)): ?>
+                        <div class="card" style="grid-column: 1/-1; padding: 40px; text-align: center;">
+                            <i class="fas fa-box-open" style="font-size: 48px; color: var(--border-color); margin-bottom: 16px;"></i>
+                            <h3>No products registered yet</h3>
+                            <p style="color: var(--text-muted);">Click "Register New Product" to get started.</p>
                         </div>
-                        <div class="product-body-user">
-                            <span class="export-badge-user">Export Ready</span>
-                            <h4 style="margin-top: 8px;">Premium Arabica Dark Roast</h4>
-                            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">100% Organic beans
-                                sourced from Bukidnon highlands.</p>
-                            <div class="product-meta-user">
-                                <span style="font-weight: 700; color: var(--primary-color);">₱ 450.00</span>
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="icon-btn" title="Edit"><i class="fas fa-edit"></i></button>
-                                    <button class="icon-btn" title="View Analytics"><i
-                                            class="fas fa-chart-bar"></i></button>
+                    <?php else: ?>
+                        <?php foreach ($products as $p): 
+                            $images = json_decode($p['product_images'], true);
+                            $mainImg = !empty($images) ? '../../../' . $images[0] : 'https://via.placeholder.com/500?text=No+Image';
+                            $statusColor = 'var(--warning-color)';
+                            $statusText = 'Under Review';
+                            if ($p['status'] === 'approved') { $statusColor = 'var(--success-color)'; $statusText = 'Active'; }
+                            if ($p['status'] === 'rejected') { $statusColor = 'var(--danger-color)'; $statusText = 'Rejected'; }
+                        ?>
+                            <div class="product-card-user">
+                                <div class="product-img-wrapper">
+                                    <img src="<?php echo $mainImg; ?>" class="product-img-user">
+                                    <span class="product-status-tag" style="color: <?php echo $statusColor; ?>;"><?php echo $statusText; ?></span>
+                                </div>
+                                <div class="product-body-user">
+                                    <?php if ($p['intended_market'] === 'export'): ?>
+                                        <span class="export-badge-user">Export Ready</span>
+                                    <?php endif; ?>
+                                    <h4 style="margin-top: 8px;"><?php echo htmlspecialchars($p['product_name']); ?></h4>
+                                    <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                                        <?php echo htmlspecialchars(substr($p['description'], 0, 80)) . (strlen($p['description']) > 80 ? '...' : ''); ?>
+                                    </p>
+                                    <div class="product-meta-user">
+                                        <span style="font-weight: 700; color: var(--primary-color);">₱ <?php echo number_format($p['srp'], 2); ?></span>
+                                        <div style="display: flex; gap: 8px;">
+                                            <button class="icon-btn" title="Edit"><i class="fas fa-edit"></i></button>
+                                            <button class="icon-btn" title="Details" onclick="viewDetails(<?php echo $p['id']; ?>)"><i class="fas fa-info-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <?php if ($p['status'] === 'rejected'): ?>
+                                        <div style="font-size: 11px; color: var(--danger-color); margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border-color);">
+                                            <strong>Reason:</strong> <?php echo htmlspecialchars($p['remarks']); ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- Product 2 -->
-                    <div class="product-card-user">
-                        <div class="product-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1511222229239-2a9557458145?w=500"
-                                class="product-img-user">
-                            <span class="product-status-tag" style="color: var(--warning-color);">Under Review</span>
-                        </div>
-                        <div class="product-body-user">
-                            <h4 style="margin-top: 8px;">Wild Civet Coffee (Luwak)</h4>
-                            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Rare collectible
-                                coffee beans with smooth profile.</p>
-                            <div class="product-meta-user">
-                                <span style="font-weight: 700; color: var(--primary-color);">₱ 1,200.00</span>
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="icon-btn" title="Edit"><i class="fas fa-edit"></i></button>
-                                    <button class="icon-btn" title="Details"><i class="fas fa-info-circle"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Product 3 -->
-                    <div class="product-card-user">
-                        <div class="product-img-wrapper">
-                            <img src="https://images.unsplash.com/photo-1544903256-014a68393e50?w=500"
-                                class="product-img-user">
-                            <span class="product-status-tag" style="color: var(--success-color);">Active</span>
-                        </div>
-                        <div class="product-body-user">
-                            <span class="export-badge-user">Regional Winner</span>
-                            <h4 style="margin-top: 8px;">Arabica Medium Roast (250g)</h4>
-                            <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Balanced acidity and
-                                fruity notes. Award-winning batch.</p>
-                            <div class="product-meta-user">
-                                <span style="font-weight: 700; color: var(--primary-color);">₱ 380.00</span>
-                                <div style="display: flex; gap: 8px;">
-                                    <button class="icon-btn" title="Edit"><i class="fas fa-edit"></i></button>
-                                    <button class="icon-btn" title="Analytics"><i class="fas fa-chart-bar"></i></button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </main>
@@ -513,19 +496,9 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                     <div class="form-section-title"><i class="fas fa-images"></i> 6. Product Media</div>
                     <div class="form-grid-modal">
                         <div class="form-group full-width">
-                            <label>Product Main Photos</label>
-                            <div class="file-upload-box">
-                                <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: var(--primary-color); margin-bottom: 8px;"></i>
-                                <p style="font-size: 13px; color: var(--text-muted);">Click to upload main product images</p>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Packaging Photos</label>
-                            <input type="file" class="form-control">
-                        </div>
-                        <div class="form-group">
-                            <label>Label Design / Photo</label>
-                            <input type="file" class="form-control">
+                            <label>Product Photos</label>
+                            <input type="file" name="product_images[]" multiple accept="image/*" class="form-control" required>
+                            <small style="color: var(--text-muted);">You can select multiple images.</small>
                         </div>
                     </div>
 
@@ -556,32 +529,72 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                 </form>
             </div>
             <div class="modal-footer">
-                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn-primary" onclick="alert('Submission functionality will be connected to database soon.')">Submit Registration</button>
+                <button type="button" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button type="submit" form="productForm" id="submitBtn" class="btn-primary">Submit Registration</button>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../../../js/main.js"></script>
     <script>
         const modal = document.getElementById('productModal');
 
         function openModal() {
             modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Prevent background scrolling
+            document.body.style.overflow = 'hidden'; 
         }
 
         function closeModal() {
             modal.classList.remove('active');
-            document.body.style.overflow = ''; // Restore scrolling
+            document.body.style.overflow = ''; 
         }
 
-        // Close modal when clicking outside
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModal();
-            }
+            if (e.target === modal) closeModal();
         });
+
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('action', 'register-product');
+
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            btn.disabled = true;
+
+            fetch('../../../ajax/products.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message,
+                        timer: 2000
+                    }).then(() => window.location.reload());
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', 'An error occurred during submission.', 'error');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        });
+
+        function viewDetails(id) {
+            // Future implementation: Load product details in a modal
+            Swal.fire('Info', 'Product details view is coming soon.', 'info');
+        }
     </script>
 </body>
 </html>

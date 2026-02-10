@@ -1,3 +1,35 @@
+<?php
+require_once '../../../includes/init.php';
+if (!isLoggedIn()) { redirect('../../../login.php'); }
+
+// Only admins can access
+$role = $_SESSION['user_role'] ?? '';
+if (!in_array($role, ['admin', 'staff', 'superadmin', 'manager'])) {
+    redirect('../../users/index.php');
+}
+
+$db = db();
+
+// Fetch pending documents
+$query = "SELECT bd.*, u.firstname, u.lastname, u.business_name, u.email 
+          FROM business_documents bd
+          JOIN users u ON bd.user_id = u.id
+          WHERE bd.status = 'pending'
+          ORDER BY bd.uploaded_at ASC";
+$pendingDocs = $db->fetchAll($query);
+
+// Fetch recent verification history
+$historyQuery = "SELECT bd.*, u.business_name 
+                FROM business_documents bd
+                JOIN users u ON bd.user_id = u.id
+                WHERE bd.status != 'pending'
+                ORDER BY bd.verified_at DESC LIMIT 10";
+$historyDocs = $db->fetchAll($historyQuery);
+
+// Stats
+$allPendingCount = $db->fetchOne("SELECT COUNT(*) as count FROM business_documents WHERE status = 'pending'")['count'];
+$allVerifiedCount = $db->fetchOne("SELECT COUNT(*) as count FROM business_documents WHERE status = 'verified'")['count'];
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -224,96 +256,97 @@
 
             <div class="content-wrapper">
                 <div class="compliance-grid">
-                    <!-- Permit Checklist -->
+                    <!-- Pending Documents List -->
                     <div class="checklist-card">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                            <h3>Permit Validation Checklist</h3>
-                            <div style="color: var(--text-muted); font-size: 14px;">Enterprise: <strong
-                                    style="color: var(--primary-color)">Bukidnon Farms Co.</strong></div>
-                        </div>
-
-                        <div class="checklist-item">
-                            <div class="checklist-info">
-                                <div class="check-btn checked" onclick="toggleCheck(this)"><i class="fas fa-check"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 600;">DTI Business Name Registration</div>
-                                    <div style="font-size: 12px; color: var(--text-muted);">Validity: Dec 2028</div>
-                                </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                            <h3>Pending Document Verifications</h3>
+                            <div class="badge-count" style="background: var(--primary-color); color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px;">
+                                <?php echo count($pendingDocs); ?> Pending
                             </div>
-                            <a href="#" class="doc-preview"><i class="fas fa-file-pdf"></i> View Doc</a>
                         </div>
 
-                        <div class="checklist-item">
-                            <div class="checklist-info">
-                                <div class="check-btn checked" onclick="toggleCheck(this)"><i class="fas fa-check"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 600;">Mayor's Business Permit 2024</div>
-                                    <div style="font-size: 12px; color: var(--text-muted);">Validity: Dec 2024</div>
-                                </div>
+                        <?php if (empty($pendingDocs)): ?>
+                            <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                                <i class="fas fa-check-circle" style="font-size: 48px; margin-bottom: 15px; opacity: 0.3;"></i>
+                                <p>All documents have been processed!</p>
                             </div>
-                            <a href="#" class="doc-preview"><i class="fas fa-file-pdf"></i> View Doc</a>
-                        </div>
-
-                        <div class="checklist-item">
-                            <div class="checklist-info">
-                                <div class="check-btn" onclick="toggleCheck(this)"><i class="fas fa-check"
-                                        style="display:none"></i></div>
-                                <div>
-                                    <div style="font-weight: 600;">FDA Certificate of Product Registration</div>
-                                    <div style="font-size: 12px; color: var(--danger-color);">Requirement for Export
+                        <?php else: ?>
+                            <?php foreach ($pendingDocs as $doc): ?>
+                                <div class="checklist-item" id="doc-row-<?php echo $doc['id']; ?>">
+                                    <div class="checklist-info">
+                                        <div class="doc-icon-circle" style="width: 40px; height: 40px; background: rgba(0, 32, 91, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--primary-color);">
+                                            <i class="fas fa-file-alt"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 600;"><?php echo htmlspecialchars($doc['document_type']); ?></div>
+                                            <div style="font-size: 12px; color: var(--text-muted);">
+                                                From: <strong><?php echo htmlspecialchars($doc['business_name']); ?></strong> (<?php echo htmlspecialchars($doc['firstname'] . ' ' . $doc['lastname']); ?>)
+                                            </div>
+                                            <div style="font-size: 11px; color: var(--text-muted);">
+                                                Uploaded: <?php echo date('M d, Y h:i A', strtotime($doc['uploaded_at'])); ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 10px; align-items: center;">
+                                        <a href="../../../<?php echo $doc['file_path']; ?>" target="_blank" class="doc-preview">
+                                            <i class="fas fa-external-link-alt"></i> View
+                                        </a>
+                                        <button class="btn-primary" style="padding: 6px 12px; font-size: 12px; background: var(--success-color);" 
+                                                onclick="processDocument(<?php echo $doc['id']; ?>, 'verified')">
+                                            Approve
+                                        </button>
+                                        <button class="btn-primary" style="padding: 6px 12px; font-size: 12px; background: var(--danger-color);" 
+                                                onclick="promptReject(<?php echo $doc['id']; ?>)">
+                                            Reject
+                                        </button>
                                     </div>
                                 </div>
-                            </div>
-                            <div style="display: flex; gap: 10px;">
-                                <button class="btn-action" style="font-size: 11px;">Request Upload</button>
-                            </div>
-                        </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
 
-                        <div class="checklist-item" style="border: none;">
-                            <div class="checklist-info">
-                                <div class="check-btn checked" onclick="toggleCheck(this)"><i class="fas fa-check"></i>
-                                </div>
-                                <div>
-                                    <div style="font-weight: 600;">Tax Clearance Certificate</div>
-                                    <div style="font-size: 12px; color: var(--text-muted);">Current Status: Cleared
+                        <div style="margin-top: 40px; border-top: 1px solid var(--border-color); padding-top: 24px;">
+                            <h4 style="margin-bottom: 15px;">Recent History</h4>
+                            <div style="font-size: 13px;">
+                                <?php foreach ($historyDocs as $h): ?>
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--border-color);">
+                                        <span><?php echo htmlspecialchars($h['business_name']); ?> - <?php echo htmlspecialchars($h['document_type']); ?></span>
+                                        <span class="status-badge <?php echo $h['status'] === 'verified' ? 'status-compliant' : 'status-expired'; ?>">
+                                            <?php echo $h['status']; ?>
+                                        </span>
                                     </div>
-                                </div>
+                                <?php endforeach; ?>
                             </div>
-                            <a href="#" class="doc-preview"><i class="fas fa-file-pdf"></i> View Doc</a>
-                        </div>
-
-                        <div style="margin-top: 32px; display: flex; justify-content: flex-end; gap: 12px;">
-                            <button class="btn-secondary"><i class="fas fa-flag"></i> Flag Revision</button>
-                            <button class="btn-primary" onclick="validateAll()"><i class="fas fa-check-circle"></i>
-                                Finalize Validation</button>
                         </div>
                     </div>
 
                     <!-- Compliance Status Summary -->
                     <div>
                         <div class="card" style="padding: 24px; margin-bottom: 24px;">
-                            <h4 style="margin-bottom: 20px;">Permit Health Status</h4>
+                            <h4 style="margin-bottom: 20px;">Compliance Registry Health</h4>
                             <div style="text-align: center;">
-                                <div style="font-size: 48px; font-weight: 800; color: var(--success-color);">85%</div>
-                                <p style="color: var(--text-muted); font-size: 13px;">Compliance Rate (Regional)</p>
+                                <?php
+                                $totalCompQuery = "SELECT COUNT(*) as total FROM business_documents";
+                                $docResult = $db->fetchOne($totalCompQuery);
+                                $totalDocs = $docResult ? $docResult['total'] : 0;
+                                $complianceRate = $totalDocs > 0 ? round(($allVerifiedCount / $totalDocs) * 100) : 0;
+                                ?>
+                                <div style="font-size: 48px; font-weight: 800; color: var(--success-color);"><?php echo $complianceRate; ?>%</div>
+                                <p style="color: var(--text-muted); font-size: 13px;">Document Approval Rate</p>
                             </div>
                             <div style="margin-top: 24px;">
                                 <div class="validation-item">
-                                    <div class="validation-header"><span>Document Completion</span><span>3/4</span>
+                                    <div class="validation-header"><span>Global Verification</span><span><?php echo $allVerifiedCount; ?> / <?php echo $totalDocs; ?></span>
                                     </div>
                                     <div class="progress-mini">
-                                        <div class="progress-mini-bar" style="width: 75%;"></div>
+                                        <div class="progress-mini-bar" style="width: <?php echo $complianceRate; ?>%;"></div>
                                     </div>
                                 </div>
                                 <div class="validation-item">
-                                    <div class="validation-header"><span>Export Eligibility</span><span
-                                            style="color: var(--warning-color)">Pending FDA</span></div>
+                                    <div class="validation-header"><span>Pending Actions</span><span
+                                            style="color: var(--warning-color)"><?php echo $allPendingCount; ?> Documents</span></div>
                                     <div class="progress-mini">
                                         <div class="progress-mini-bar"
-                                            style="width: 40%; background: var(--warning-color);"></div>
+                                            style="width: <?php echo ($totalDocs > 0) ? ($allPendingCount / $totalDocs * 100) : 0; ?>%; background: var(--warning-color);"></div>
                                     </div>
                                 </div>
                             </div>
@@ -347,17 +380,58 @@
     </div>
 
     <script src="../../../js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function toggleCheck(btn) {
-            btn.classList.toggle('checked');
-            const icon = btn.querySelector('i');
-            icon.style.display = btn.classList.contains('checked') ? 'block' : 'none';
+        function processDocument(docId, status, remarks = '') {
+            const formData = new FormData();
+            formData.append('action', 'process-document');
+            formData.append('document_id', docId);
+            formData.append('status', status);
+            formData.append('remarks', remarks);
+
+            fetch('../../../ajax/compliance.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Updated',
+                        text: data.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            })
+            .catch(error => console.error('Error:', error));
         }
 
-        function validateAll() {
-            alert('Enterprise Compliance Validation successful. Registry has been updated.');
+        async function promptReject(docId) {
+            const { value: remarks } = await Swal.fire({
+                title: 'Reject Document',
+                input: 'textarea',
+                inputLabel: 'Reason for rejection',
+                inputPlaceholder: 'Type your reason here...',
+                inputAttributes: {
+                    'aria-label': 'Type your reason here'
+                },
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Confirm Rejection'
+            });
+
+            if (remarks) {
+                processDocument(docId, 'rejected', remarks);
+            }
         }
     </script>
+    <script src="../../../js/main.js"></script>
 </body>
 
 </html>

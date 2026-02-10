@@ -42,6 +42,8 @@ if ($action === 'signup') {
     ]);
 
     if ($userId) {
+        // Notify admin of new registration
+        addNotification("New Registration", "A new user account ({$firstname} {$lastname}) has been created.", 'info', 'admin');
         echo json_encode(['success' => true, 'message' => 'Registration successful!']);
     } else {
         echo json_encode(['success' => false, 'message' => 'Registration failed. Please try again.']);
@@ -120,20 +122,21 @@ if ($action === 'verify-otp') {
     }
 
     $db = db();
+    $now = date('Y-m-d H:i:s');
     $verification = $db->fetchOne(
-        "SELECT * FROM otp_verifications WHERE email = ? AND otp_code = ? AND expires_at > NOW()",
-        [$email, $otp]
+        "SELECT * FROM otp_verifications WHERE email = ? AND otp_code = ? AND expires_at > ?",
+        [$email, $otp, $now]
     );
 
     if ($verification) {
         // Valid OTP
         // Get user/admin data again - Prioritize admins
         $user = $db->fetchOne("SELECT * FROM admins WHERE email = ?", [$email]);
-        $role = $user['role'] ?? 'admin';
+        $role = $user ? ($user['role'] ?? 'admin') : null;
         
         if (!$user) {
             $user = $db->fetchOne("SELECT * FROM users WHERE email = ?", [$email]);
-            $role = $user['role'] ?? 'user';
+            $role = $user ? ($user['role'] ?? 'user') : null;
         }
 
         if (!$user) {
@@ -144,21 +147,31 @@ if ($action === 'verify-otp') {
         // Set session
         $_SESSION['user_id'] = $user['id'];
         $_SESSION['user_email'] = $user['email'];
-        $_SESSION['user_role'] = $role;
-        $_SESSION['user_name'] = $user['firstname'] . ' ' . $user['lastname'];
+        $_SESSION['user_role'] = strtolower($role);
+        $_SESSION['user_name'] = ($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? '');
         $_SESSION['business_name'] = $user['business_name'] ?? null;
         
         // Administrative roles automatically bypass profile completion
-        $isAdminRole = in_array($role, ['admin', 'staff', 'superadmin', 'manager']);
+        $isAdminRole = in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin', 'manager']);
         $_SESSION['profile_completed'] = $isAdminRole ? true : (bool)($user['profile_completed'] ?? false);
+
+        // Debug: Log session before saving
+        error_log("OTP Verified - Setting Session for: " . $_SESSION['user_email']);
+        error_log("Session Data at Login: " . print_r($_SESSION, true));
+
+        // Regenerate session ID for security (Disabled temporarily for debugging)
+        // session_regenerate_id(true);
 
         // Clean up OTP
         $db->delete('otp_verifications', 'email = ?', [$email]);
 
+        // Ensure session is saved before redirecting
+        session_write_close();
+
         echo json_encode([
             'success' => true, 
             'message' => 'Verification successful!',
-            'role' => $role,
+            'role' => $_SESSION['user_role'],
             'is_admin' => $isAdminRole,
             'profile_completed' => $_SESSION['profile_completed']
         ]);
@@ -232,6 +245,10 @@ if ($action === 'complete-profile') {
         
         $db->commit();
         $_SESSION['profile_completed'] = true;
+
+        // Notify admin of profile completion
+        addNotification("New MSME Profile", "{$_SESSION['user_name']} has completed their business profile for '{$business_name}'.", 'success', 'admin');
+
         echo json_encode(['success' => true, 'message' => 'Profile completed successfully!']);
     } catch (Throwable $e) {
         if (isset($db)) {
@@ -240,6 +257,41 @@ if ($action === 'complete-profile') {
         error_log("Profile Completion Error: " . $e->getMessage());
         echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
     }
+}
+
+/**
+ * Get full user details for review (Admin only)
+ */
+if ($action === 'get-user-details-review') {
+    if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin', 'manager'])) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized access.']);
+        exit;
+    }
+
+    $id = (int)($_GET['userId'] ?? 0);
+    if (!$id) {
+        echo json_encode(['success' => false, 'message' => 'Invalid user ID.']);
+        exit;
+    }
+
+    $db = db();
+    $user = $db->fetchOne("SELECT id, firstname, lastname, email, role, status, business_name, created_at FROM users WHERE id = ?", [$id]);
+    
+    if (!$user) {
+        echo json_encode(['success' => false, 'message' => 'User not found.']);
+        exit;
+    }
+
+    $profile = $db->fetchOne("SELECT * FROM business_profiles WHERE user_id = ?", [$id]);
+    $products = $db->fetchAll("SELECT * FROM user_products WHERE user_id = ?", [$id]);
+
+    echo json_encode([
+        'success' => true,
+        'user' => $user,
+        'profile' => $profile,
+        'products' => $products
+    ]);
+    exit;
 }
 
 /**
@@ -293,6 +345,43 @@ if ($action === 'update-msme') {
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => 'Server Error: ' . $e->getMessage()]);
     }
+}
+
+/**
+ * Simple status update for administrators (Dashboard review)
+ */
+if ($action === 'update-status-simple') {
+    if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin', 'manager'])) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized access.']);
+        exit;
+    }
+
+    $id = (int)($_POST['userId'] ?? 0);
+    $status = sanitize($_POST['status'] ?? '');
+
+    if (!$id || !$status) {
+        echo json_encode(['success' => false, 'message' => 'Missing required data.']);
+        exit;
+    }
+
+    try {
+        $db = db();
+        $success = $db->update('users', ['status' => $status], 'id = :id', ['id' => $id]);
+        
+        if ($success || $success === 0) {
+            // Log for notification
+            $user = $db->fetchOne("SELECT firstname, lastname FROM users WHERE id = ?", [$id]);
+            $msg = "User application for " . $user['firstname'] . " " . $user['lastname'] . " has been " . $status . ".";
+            addNotification("Application Updated", $msg, ($status == 'active' ? 'success' : 'warning'), 'admin');
+
+            echo json_encode(['success' => true, 'message' => 'Status updated successfully.']);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to update user status.']);
+        }
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => 'Database Error: ' . $e->getMessage()]);
+    }
+    exit;
 }
 
 /**

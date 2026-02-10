@@ -49,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loginForm) {
         const otpSection = document.getElementById('otp-section');
         const loginHeader = document.querySelector('.auth-header p');
+        let sessionEmail = ''; // Store email for OTP verification
 
         loginForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -62,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(data => {
                     if (data.success) {
                         // Transition to OTP
+                        sessionEmail = formData.get('email');
                         loginForm.style.display = 'none';
                         otpSection.style.display = 'block';
                         if (loginHeader) loginHeader.textContent = "Please verify your identity";
@@ -126,7 +128,9 @@ document.addEventListener('DOMContentLoaded', () => {
             verifyBtn.addEventListener('click', () => {
                 const code = Array.from(otpInputs).map(i => i.value).join('');
                 if (code.length === 6) {
-                    const email = document.getElementById('email').value;
+                    const email = sessionEmail || document.getElementById('email').value;
+                    console.log('Verifying OTP for:', email);
+
                     const formData = new FormData();
                     formData.append('email', email);
                     formData.append('otp', code);
@@ -135,24 +139,34 @@ document.addEventListener('DOMContentLoaded', () => {
                         method: 'POST',
                         body: formData
                     })
-                        .then(response => response.json())
+                        .then(response => {
+                            if (!response.ok) throw new Error('Network response was not ok');
+                            return response.json();
+                        })
                         .then(data => {
+                            console.log('Verification Response:', data);
                             if (data.success) {
-                                showNotification('Verified', 'Redirecting to your dashboard...', 'success');
+                                showNotification('Verified', 'Success! Logging you in...', 'success');
+
+                                // Faster redirect
                                 setTimeout(() => {
+                                    let targetPage = '';
                                     if (data.is_admin) {
-                                        window.location.href = 'dashboard/administrator/index.php';
+                                        targetPage = 'dashboard/administrator/index.php';
                                     } else {
-                                        if (data.profile_completed) {
-                                            window.location.href = 'dashboard/users/index.php';
-                                        } else {
-                                            window.location.href = 'complete-profile.php';
-                                        }
+                                        targetPage = data.profile_completed ? 'dashboard/users/index.php' : 'complete-profile.php';
                                     }
-                                }, 1500);
+
+                                    console.log('Redirecting to:', targetPage);
+                                    window.location.replace(targetPage);
+                                }, 800);
                             } else {
                                 showNotification('Verification Failed', data.message, 'error');
                             }
+                        })
+                        .catch(error => {
+                            console.error('Fetch Error:', error);
+                            showNotification('System Error', 'An error occurred during verification. Please check console.', 'error');
                         });
                 } else {
                     showNotification('Input Error', 'Please enter the complete 6-digit code.', 'error');
@@ -163,18 +177,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Resend Timer
         let timerInterval;
         function startResendTimer() {
-            let timeLeft = 120;
+            let timeLeft = 60;
             const timerEl = document.getElementById('timer');
             const resendLink = document.getElementById('resend-link');
 
             if (!timerEl || !resendLink) return;
 
             resendLink.classList.add('disabled');
+            resendLink.innerHTML = `Resend in <span id="timer">${timeLeft}</span>s`;
 
             clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 timeLeft--;
-                timerEl.textContent = timeLeft;
+                const currentTimerEl = document.getElementById('timer');
+                if (currentTimerEl) currentTimerEl.textContent = timeLeft;
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
@@ -182,6 +198,39 @@ document.addEventListener('DOMContentLoaded', () => {
                     resendLink.classList.remove('disabled');
                 }
             }, 1000);
+        }
+
+        // Resend Code Click Handler
+        const resendLink = document.getElementById('resend-link');
+        if (resendLink) {
+            resendLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (resendLink.classList.contains('disabled')) return;
+
+                const formData = new FormData(loginForm);
+                fetch('ajax/auth.php?action=login', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showNotification('Success!', 'A new OTP was sent to your email', 'success');
+                            if (data.temp_otp) {
+                                setTimeout(() => {
+                                    showNotification('OTP Code', `Your demo OTP is: ${data.temp_otp}`, 'success');
+                                }, 1000);
+                            }
+                            startResendTimer();
+                        } else {
+                            showNotification('Error', data.message, 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showNotification('System Error', 'Could not resend code.', 'error');
+                    });
+            });
         }
     }
 

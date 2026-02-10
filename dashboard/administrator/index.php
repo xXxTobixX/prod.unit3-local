@@ -3,7 +3,28 @@ require_once '../../includes/init.php';
 if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin', 'manager'])) {
     redirect('../../login.php');
 }
+
+$db = db();
+
+// Fetch Real Statistics
+$total_msmes = $db->fetchOne("SELECT COUNT(*) as c FROM users WHERE role = 'user'")['c'];
+$pending_approvals = $db->fetchOne("SELECT COUNT(*) as c FROM users WHERE status = 'pending'")['c'];
+$total_products = $db->fetchOne("SELECT COUNT(*) as c FROM user_products")['c'];
+$active_profiles = $db->fetchOne("SELECT COUNT(*) as c FROM business_profiles")['c'];
+
+// Fetch Recent Applications (Users who registered recently)
+$recent_apps = $db->fetchAll("
+    SELECT * FROM users 
+    WHERE role = 'user' 
+    ORDER BY created_at DESC 
+    LIMIT 5
+");
+
+// Logic for trends (hardcoded for now as we don't have historical data)
+$msme_trend = "5.2% vs last month";
+$pending_trend = "Urgent Action Required";
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -80,7 +101,7 @@ if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'super
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
+                        <span class="badge" style="opacity: 0;">0</span>
                     </div>
                     <div class="user-profile">
                         <div class="user-info">
@@ -101,9 +122,9 @@ if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'super
                             <i class="fas fa-users-viewfinder"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>Total Registered</h3>
-                            <p class="stat-number">12,840</p>
-                            <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> 5.2% vs last month</span>
+                            <h3>Total MSMEs</h3>
+                            <p class="stat-number"><?php echo number_format($total_msmes); ?></p>
+                            <span class="stat-trend positive"><i class="fas fa-arrow-up"></i> <?php echo $msme_trend; ?></span>
                         </div>
                     </div>
 
@@ -112,31 +133,31 @@ if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'super
                             <i class="fas fa-file-signature"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>Pending Requests</h3>
-                            <p class="stat-number">432</p>
-                            <span class="stat-trend negative"><i class="fas fa-clock"></i> Urgent Action Required</span>
+                            <h3>Pending Approvals</h3>
+                            <p class="stat-number"><?php echo number_format($pending_approvals); ?></p>
+                            <span class="stat-trend negative"><i class="fas fa-clock"></i> <?php echo $pending_trend; ?></span>
                         </div>
                     </div>
 
                     <div class="stat-card">
                         <div class="stat-icon yellow">
-                            <i class="fas fa-coins"></i>
+                            <i class="fas fa-boxes-stacked"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>Disbursement</h3>
-                            <p class="stat-number">₱ 45.2M</p>
-                            <span class="stat-trend positive"><i class="fas fa-check-circle"></i> On Track</span>
+                            <h3>Total Products</h3>
+                            <p class="stat-number"><?php echo number_format($total_products); ?></p>
+                            <span class="stat-trend positive"><i class="fas fa-check-circle"></i> Registered Products</span>
                         </div>
                     </div>
 
                     <div class="stat-card">
                         <div class="stat-icon green">
-                            <i class="fas fa-handshake"></i>
+                            <i class="fas fa-store"></i>
                         </div>
                         <div class="stat-details">
-                            <h3>Public Services</h3>
-                            <p class="stat-number">98%</p>
-                            <span class="stat-trend positive"><i class="fas fa-smile"></i> High Satisfaction</span>
+                            <h3>Active Profiles</h3>
+                            <p class="stat-number"><?php echo number_format($active_profiles); ?></p>
+                            <span class="stat-trend positive"><i class="fas fa-smile"></i> Completed Profiles</span>
                         </div>
                     </div>
                 </div>
@@ -161,58 +182,32 @@ if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'super
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td class="ref">#PH-2024-001</td>
-                                        <td>
-                                            <div class="table-user">
-                                                <div class="name">Juan Dela Cruz</div>
-                                                <div class="email">juan.dc@email.com</div>
-                                            </div>
-                                        </td>
-                                        <td>Business Permit</td>
-                                        <td>Feb 07, 2024</td>
-                                        <td><span class="status status-pending">Pending</span></td>
-                                        <td><button class="btn-action">Review</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="ref">#PH-2024-002</td>
-                                        <td>
-                                            <div class="table-user">
-                                                <div class="name">Maria Santos</div>
-                                                <div class="email">m.santos@email.com</div>
-                                            </div>
-                                        </td>
-                                        <td>Health Clearance</td>
-                                        <td>Feb 06, 2024</td>
-                                        <td><span class="status status-approved">Approved</span></td>
-                                        <td><button class="btn-action">View</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="ref">#PH-2024-003</td>
-                                        <td>
-                                            <div class="table-user">
-                                                <div class="name">Ricardo Reyes</div>
-                                                <div class="email">r.reyes@email.com</div>
-                                            </div>
-                                        </td>
-                                        <td>ID Renewal</td>
-                                        <td>Feb 05, 2024</td>
-                                        <td><span class="status status-rejected">Rejected</span></td>
-                                        <td><button class="btn-action">Review</button></td>
-                                    </tr>
-                                    <tr>
-                                        <td class="ref">#PH-2024-004</td>
-                                        <td>
-                                            <div class="table-user">
-                                                <div class="name">Liza Lopez</div>
-                                                <div class="email">liza.l@email.com</div>
-                                            </div>
-                                        </td>
-                                        <td>Travel Authority</td>
-                                        <td>Feb 04, 2024</td>
-                                        <td><span class="status status-approved">Approved</span></td>
-                                        <td><button class="btn-action">View</button></td>
-                                    </tr>
+                                    <?php if (empty($recent_apps)): ?>
+                                        <tr>
+                                            <td colspan="6" style="text-align: center; padding: 30px;">No recent applications found.</td>
+                                        </tr>
+                                    <?php else: ?>
+                                        <?php foreach ($recent_apps as $app): ?>
+                                            <tr>
+                                                <td class="ref">#APP-<?php echo str_pad($app['id'], 3, '0', STR_PAD_LEFT); ?></td>
+                                                <td>
+                                                    <div class="table-user">
+                                                        <div class="name"><?php echo htmlspecialchars($app['firstname'] . ' ' . $app['lastname']); ?></div>
+                                                        <div class="email"><?php echo htmlspecialchars($app['email']); ?></div>
+                                                    </div>
+                                                </td>
+                                                <td><?php echo !empty($app['business_name']) ? htmlspecialchars($app['business_name']) : 'New Registration'; ?></td>
+                                                <td><?php echo date('M d, Y', strtotime($app['created_at'])); ?></td>
+                                                <td>
+                                                    <?php 
+                                                        $statusClass = 'status-' . strtolower($app['status']);
+                                                        echo '<span class="status ' . $statusClass . '">' . ucfirst($app['status']) . '</span>';
+                                                    ?>
+                                                </td>
+                                                <td><button class="btn-action" onclick="reviewApplication(<?php echo $app['id']; ?>)">Review</button></td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    <?php endif; ?>
                                 </tbody>
                             </table>
                         </div>
@@ -271,6 +266,123 @@ if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'super
         </main>
     </div>
 
+    <div id="reviewModal" class="modal-overlay">
+        <div class="logout-modal" style="width: 600px; text-align: left; padding: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Review Application</h2>
+                <button class="btn-close-notif" onclick="closeReviewModal()"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div id="reviewContent" class="notif-modal-body" style="max-height: 50vh;">
+                <!-- Content will be loaded here -->
+                <div style="text-align: center; padding: 20px;">
+                    <i class="fas fa-spinner fa-spin"></i> Loading details...
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; display: flex; gap: 10px;">
+                <button class="btn-logout-cancel" style="background: var(--danger-color); color: white;" onclick="updateAppStatus('rejected')">Reject Application</button>
+                <button class="btn-logout-confirm" style="background: var(--success-color); flex: 2;" onclick="updateAppStatus('active')">Approve & Activate</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../../js/main.js"></script>
+    <script>
+        let currentReviewId = null;
+
+        function reviewApplication(userId) {
+            currentReviewId = userId;
+            const modal = document.getElementById('reviewModal');
+            const content = document.getElementById('reviewContent');
+            
+            modal.classList.add('active');
+            content.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fas fa-spinner fa-spin"></i> Loading details...</div>';
+
+            fetch(`../../ajax/auth.php?action=get-user-details-review&userId=${userId}`)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const u = data.user;
+                        const p = data.profile;
+                        const prods = data.products;
+
+                        content.innerHTML = `
+                            <div class="user-details" style="margin-bottom: 20px;">
+                                <h4 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 10px;">Personal Information</h4>
+                                <p><strong>Name:</strong> ${u.firstname} ${u.lastname}</p>
+                                <p><strong>Email:</strong> ${u.email}</p>
+                                <p><strong>Status:</strong> <span class="status status-${u.status}">${u.status.toUpperCase()}</span></p>
+                            </div>
+
+                            ${p ? `
+                            <div class="business-details" style="margin-bottom: 20px;">
+                                <h4 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 10px;">Business Profile</h4>
+                                <p><strong>Business Name:</strong> ${p.business_name || u.business_name || 'N/A'}</p>
+                                <p><strong>Sector:</strong> ${p.sector || 'N/A'}</p>
+                                <p><strong>Address:</strong> ${p.address || 'N/A'}</p>
+                                <p><strong>Reg Number:</strong> ${p.registration_number || 'N/A'}</p>
+                                <p><strong>Workers:</strong> ${p.number_of_workers || '0'}</p>
+                            </div>
+                            ` : '<p style="color: var(--text-muted); font-style: italic;">No business profile completed yet.</p>'}
+
+                            ${prods && prods.length > 0 ? `
+                            <div class="products-details">
+                                <h4 style="color: var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom: 5px; margin-bottom: 10px;">Products</h4>
+                                ${prods.map(pr => `
+                                    <div style="background: #f8fafc; padding: 10px; border-radius: 8px; margin-bottom: 5px;">
+                                        <strong>${pr.product_name}</strong> (${pr.category})<br>
+                                        <small>${pr.description}</small>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            ` : ''}
+                        `;
+                    } else {
+                        content.innerHTML = `<p style="color: var(--danger-color);">${data.message}</p>`;
+                    }
+                });
+        }
+
+        function closeReviewModal() {
+            document.getElementById('reviewModal').classList.remove('active');
+        }
+
+        function updateAppStatus(newStatus) {
+            if (!currentReviewId) return;
+            
+            const btn = event.currentTarget;
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = 'Processing...';
+
+            // We use update-msme but only changing status
+            const formData = new FormData();
+            formData.append('userId', currentReviewId);
+            formData.append('status', newStatus);
+            
+            // Fetch existing data for update-msme requirements if needed
+            // But let's check auth.php update-msme again. It needs fullName and email.
+            // I'll modify auth.php to allow partial updates if just ID and status are provided.
+            
+            fetch(`../../ajax/auth.php?action=update-status-simple`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `userId=${currentReviewId}&status=${newStatus}`
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert('Error: ' + data.message);
+                    btn.disabled = false;
+                    btn.innerText = originalText;
+                }
+            });
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../../js/main.js"></script>
 </body>
 

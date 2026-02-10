@@ -2,6 +2,34 @@
 require_once '../../../includes/init.php'; 
 if (!isLoggedIn()) { redirect('../../../login.php'); } 
 if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php'); } 
+
+$userId = $_SESSION['user_id'];
+$db = db();
+
+// Fetch user documents
+$documents = $db->fetchAll("SELECT * FROM business_documents WHERE user_id = :id", ['id' => $userId]);
+
+// Helper to get doc by type
+function getDocByType($docs, $type) {
+    foreach ($docs as $doc) {
+        if ($doc['document_type'] === $type) return $doc;
+    }
+    return null;
+}
+
+$requiredDocs = [
+    ['type' => "Mayor's Permit", 'icon' => 'fa-file-invoice', 'desc' => 'LGU Business Authorization'],
+    ['type' => 'DTI Registration', 'icon' => 'fa-file-contract', 'desc' => 'National Business Name Registry'],
+    ['type' => 'BIR Certificate', 'icon' => 'fa-file-signature', 'desc' => 'Tax Compliance Certificate'],
+    ['type' => 'Export Certification', 'icon' => 'fa-ship', 'desc' => 'Bureau of Customs / DTI Export Permit']
+];
+
+// Calculate Score
+$verifiedCount = 0;
+foreach($documents as $d) if($d['status'] === 'verified') $verifiedCount++;
+$totalRequired = count($requiredDocs);
+$score = $totalRequired > 0 ? round(($verifiedCount / $totalRequired) * 100) : 0;
+$dashOffset = 440 - (440 * ($score / 100));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -129,6 +157,56 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
         body.dark-mode .circle-bg {
             stroke: rgba(255, 255, 255, 0.05);
         }
+
+        /* Modal Styles (Synced with Profile Page) */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideUp 0.3s ease-out;
+        }
+
+        @keyframes modalSlideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -206,59 +284,52 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                     <div class="document-checklist">
                         <h3 style="margin-bottom: 8px;">Permit Checklist</h3>
 
-                        <div class="doc-item">
-                            <div class="doc-meta">
-                                <div class="icon-btn" style="background: rgba(59, 130, 246, 0.1);"><i
-                                        class="fas fa-file-contract"></i></div>
-                                <div>
-                                    <div style="font-weight: 600;">DTI Business Registration</div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Validity: Oct 2028</div>
-                                </div>
-                            </div>
-                            <span class="status-pill-user pill-valid">Valid</span>
-                        </div>
-
-                        <div class="doc-item">
-                            <div class="doc-meta">
-                                <div class="icon-btn" style="background: rgba(59, 130, 246, 0.1);"><i
-                                        class="fas fa-store"></i></div>
-                                <div>
-                                    <div style="font-weight: 600;">Mayor's Business Permit</div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Validity: Dec 31, 2024</div>
-                                </div>
-                            </div>
-                            <span class="status-pill-user pill-valid">Valid</span>
-                        </div>
-
-                        <div class="doc-item">
-                            <div class="doc-meta">
-                                <div class="icon-btn"
-                                    style="background: rgba(239, 68, 68, 0.1); color: var(--danger-color);"><i
-                                        class="fas fa-flask"></i></div>
-                                <div>
-                                    <div style="font-weight: 600;">FDA Product Certification</div>
-                                    <div style="font-size: 11px; color: var(--danger-color);">Expired: Jan 15, 2024
+                        <div id="compliance-list">
+                            <?php foreach ($requiredDocs as $req): 
+                                $existingDoc = getDocByType($documents, $req['type']);
+                                $statusClass = 'pill-pending';
+                                $statusText = 'Not Uploaded';
+                                
+                                if ($existingDoc) {
+                                    if ($existingDoc['status'] === 'verified') {
+                                        $statusClass = 'pill-valid';
+                                        $statusText = 'Verified';
+                                    } elseif ($existingDoc['status'] === 'rejected') {
+                                        $statusClass = 'pill-expired';
+                                        $statusText = 'Rejected';
+                                    } else {
+                                        $statusClass = 'pill-pending';
+                                        $statusText = 'In Review';
+                                    }
+                                }
+                            ?>
+                                <div class="doc-item">
+                                    <div class="doc-meta">
+                                        <div class="icon-btn" style="background: rgba(59, 130, 246, 0.1);">
+                                            <i class="fas <?php echo $req['icon']; ?>"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 600;"><?php echo $req['type']; ?></div>
+                                            <div style="font-size: 11px; color: var(--text-muted);"><?php echo $req['desc']; ?></div>
+                                            <?php if ($existingDoc && $existingDoc['status'] === 'rejected'): ?>
+                                                <div style="font-size: 10px; color: var(--danger-color); margin-top: 4px;">
+                                                    <i class="fas fa-info-circle"></i> Reason: <?php echo htmlspecialchars($existingDoc['remarks']); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 12px; align-items: center;">
+                                        <span class="status-pill-user <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
+                                        <?php if (!$existingDoc): ?>
+                                            <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="openUploadModal('<?php echo $req['type']; ?>')">Upload</button>
+                                        <?php else: ?>
+                                            <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="openUploadModal('<?php echo $req['type']; ?>')">
+                                                <?php echo $existingDoc['status'] === 'rejected' ? 'Re-upload' : 'Renew / Replace'; ?>
+                                            </button>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
-                            </div>
-                            <div style="display: flex; gap: 12px; align-items: center;">
-                                <span class="status-pill-user pill-expired">Expired</span>
-                                <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;">Renew
-                                    Now</button>
-                            </div>
-                        </div>
-
-                        <div class="doc-item">
-                            <div class="doc-meta">
-                                <div class="icon-btn"
-                                    style="background: rgba(245, 158, 11, 0.1); color: var(--warning-color);"><i
-                                        class="fas fa-certificate"></i></div>
-                                <div>
-                                    <div style="font-weight: 600;">HALAL Certification</div>
-                                    <div style="font-size: 11px; color: var(--text-muted);">Status: Processing...</div>
-                                </div>
-                            </div>
-                            <span class="status-pill-user pill-pending">In Review</span>
+                            <?php endforeach; ?>
                         </div>
                     </div>
 
@@ -267,28 +338,111 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                         <div class="circle-progress-wrapper">
                             <svg class="circle-svg" viewBox="0 0 160 160">
                                 <circle class="circle-bg" cx="80" cy="80" r="70"></circle>
-                                <circle class="circle-bar" cx="80" cy="80" r="70"></circle>
+                                <circle class="circle-bar" cx="80" cy="80" r="70" style="stroke-dashoffset: <?php echo $dashOffset; ?>;"></circle>
                             </svg>
-                            <div class="percentage-text">85%</div>
+                            <div class="percentage-text"><?php echo $score; ?>%</div>
                         </div>
-                        <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">You are <strong>highly
-                                compliant</strong>! Renewal of FDA permit will increase your score to 95%.</p>
+                        <p style="font-size: 14px; color: var(--text-muted); line-height: 1.6;">
+                            <?php if($score == 100): ?>
+                                You are **fully compliant**! Your business is ready for all regional and national incentives.
+                            <?php elseif($score >= 75): ?>
+                                You are **highly compliant**! Complete the remaining documents to unlock export eligibility.
+                            <?php else: ?>
+                                Focus on uploading the **Required 4** documents to improve your compliance status.
+                            <?php endif; ?>
+                        </p>
                         <hr style="border: none; border-top: 1px solid var(--border-color); margin: 24px 0;">
                         <h4 style="margin-bottom: 12px;">Requirements for Export</h4>
-                        <ul
-                            style="text-align: left; font-size: 13px; color: var(--text-muted); list-style: none; padding: 0;">
-                            <li style="margin-bottom: 8px;"><i class="fas fa-check-circle"
-                                    style="color: var(--success-color); margin-right: 8px;"></i> DTI Registration</li>
-                            <li style="margin-bottom: 8px;"><i class="fas fa-check-circle"
-                                    style="color: var(--success-color); margin-right: 8px;"></i> BIR Tax Clearance</li>
-                            <li style="margin-bottom: 8px;"><i class="fas fa-times-circle"
-                                    style="color: var(--danger-color); margin-right: 8px;"></i> Active FDA LTO</li>
+                        <ul style="text-align: left; font-size: 13px; color: var(--text-muted); list-style: none; padding: 0;">
+                            <?php foreach($requiredDocs as $req): 
+                                $isVerified = false;
+                                foreach($documents as $d) if($d['document_type'] === $req['type'] && $d['status'] === 'verified') $isVerified = true;
+                            ?>
+                                <li style="margin-bottom: 8px;">
+                                    <i class="fas <?php echo $isVerified ? 'fa-check-circle' : 'fa-times-circle'; ?>"
+                                       style="color: var(--<?php echo $isVerified ? 'success' : 'danger'; ?>-color); margin-right: 8px;"></i> 
+                                    <?php echo $req['type']; ?>
+                                </li>
+                            <?php endforeach; ?>
                         </ul>
                     </div>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- Upload Modal (Synced with Profile) -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Renew/Upload <span id="modal-doc-type">Document</span></h3>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="uploadForm">
+                <input type="hidden" name="document_type" id="hidden-doc-type">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Select New File (PDF, JPG, PNG - Max 5MB)</label>
+                    <input type="file" name="document_file" id="document_file" required accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="button" class="btn-secondary" style="flex: 1;" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" style="flex: 1;">Proceed Submission</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function openUploadModal(type) {
+            document.getElementById('modal-doc-type').textContent = type;
+            document.getElementById('hidden-doc-type').value = type;
+            document.getElementById('uploadModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            document.getElementById('uploadForm').reset();
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('action', 'upload-document');
+
+            const btn = this.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            fetch('../../../ajax/compliance.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Submitted!',
+                        text: 'Your document has been sent for verification.',
+                        timer: 2000
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire('Failed', data.message, 'error');
+                    btn.innerHTML = 'Proceed Submission';
+                    btn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire('Error', 'An error occurred.', 'error');
+                btn.innerHTML = 'Proceed Submission';
+                btn.disabled = false;
+            });
+        });
+    </script>
 
     <script src="../../../js/main.js"></script>
 </body>

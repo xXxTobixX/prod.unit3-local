@@ -1,3 +1,21 @@
+<?php
+require_once '../../../includes/init.php';
+if (!isLoggedIn()) { redirect('../../../login.php'); }
+// Only admins
+$adminRole = $_SESSION['user_role'] ?? '';
+if (!in_array($adminRole, ['admin', 'staff', 'superadmin', 'manager'])) {
+    redirect('../../index.php');
+}
+
+$db = db();
+$allProducts = $db->fetchAll("
+    SELECT p.*, CONCAT(u.firstname, ' ', u.lastname) as user_name, u.business_name, bp.business_type as enterprise_type
+    FROM user_products p 
+    JOIN users u ON p.user_id = u.id 
+    LEFT JOIN business_profiles bp ON u.id = bp.user_id
+    ORDER BY p.created_at DESC
+");
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -344,105 +362,56 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>
-                                        <div class="product-cell">
-                                            <img src="https://images.unsplash.com/photo-1590159746766-7f3099049202?w=100"
-                                                class="product-img-table">
-                                            <div>
-                                                <div style="font-weight: 600;">Organic Coffee Beans</div>
-                                                <div style="font-size: 12px; color: var(--text-muted);">Agriculture •
-                                                    500g</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div style="font-weight: 600; color: var(--primary-color); cursor: pointer;"
-                                            onclick="viewMSME('Bukidnon Farms')">Bukidnon Farms Co.</div>
-                                        <div class="msme-tag"><i class="fas fa-tag"></i> Micro Enterprise</div>
-                                    </td>
-                                    <td>
-                                        <div class="market-pills">
-                                            <span class="market-status status-local">Local</span>
-                                            <span class="market-status status-export">Export</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="status status-pending">Pending</span></td>
-                                    <td>Feb 08, 2024</td>
-                                    <td>
-                                        <div style="display: flex; gap: 8px;">
-                                            <button class="btn-approve"
-                                                onclick="updateStatus('Approved')">Approve</button>
-                                            <button class="btn-reject"
-                                                onclick="updateStatus('Rejected')">Reject</button>
-                                            <button class="btn-action"
-                                                onclick="viewProduct('Organic Coffee Beans', 'Agriculture', '500g', '₱ 450.00', 'https://images.unsplash.com/photo-1590159746766-7f3099049202?w=400', 'Bukidnon Farms Co.')">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="product-cell">
-                                            <img src="https://images.unsplash.com/photo-1544654856-51f15f00bc16?w=100"
-                                                class="product-img-table">
-                                            <div>
-                                                <div style="font-weight: 600;">Handwoven Abaca Bag</div>
-                                                <div style="font-size: 12px; color: var(--text-muted);">Handicrafts •
-                                                    Large</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div style="font-weight: 600; color: var(--primary-color); cursor: pointer;"
-                                            onclick="viewMSME('Luzon Crafts')">Luzon Crafts Hub</div>
-                                        <div class="msme-tag"><i class="fas fa-tag"></i> Small Enterprise</div>
-                                    </td>
-                                    <td>
-                                        <div class="market-pills">
-                                            <span class="market-status status-local">Local</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="status status-approved">Approved</span></td>
-                                    <td>Feb 05, 2024</td>
-                                    <td>
-                                        <button class="btn-action"
-                                            onclick="viewProduct('Handwoven Abaca Bag', 'Handicrafts', 'Large', '₱ 1,250.00', 'https://images.unsplash.com/photo-1544654856-51f15f00bc16?w=400', 'Luzon Crafts Hub')">View
-                                            Info</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <div class="product-cell">
-                                            <img src="https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=100"
-                                                class="product-img-table">
-                                            <div>
-                                                <div style="font-weight: 600;">Dried Mango Packs</div>
-                                                <div style="font-size: 12px; color: var(--text-muted);">Food • 250g
+                                <?php if (empty($allProducts)): ?>
+                                    <tr><td colspan="6" style="text-align:center; padding: 20px;">No products found in registry.</td></tr>
+                                <?php else: ?>
+                                    <?php foreach ($allProducts as $p): 
+                                        $images = json_decode($p['product_images'], true);
+                                        $mainImg = !empty($images) ? '../../../' . $images[0] : 'https://via.placeholder.com/100?text=No+Img';
+                                        
+                                        $statusClass = 'status-pending';
+                                        if($p['status'] === 'approved') $statusClass = 'status-approved';
+                                        if($p['status'] === 'rejected') $statusClass = 'status-rejected';
+                                    ?>
+                                        <tr>
+                                            <td>
+                                                <div class="product-cell">
+                                                    <img src="<?php echo $mainImg; ?>" class="product-img-table">
+                                                    <div>
+                                                        <div style="font-weight: 600;"><?php echo htmlspecialchars($p['product_name']); ?></div>
+                                                        <div style="font-size: 12px; color: var(--text-muted);"><?php echo htmlspecialchars($p['category']); ?></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div style="font-weight: 600; color: var(--primary-color); cursor: pointer;"
-                                            onclick="viewMSME('Visayas Delicacies')">Visayas Delicacies</div>
-                                        <div class="msme-tag"><i class="fas fa-tag"></i> Medium Enterprise</div>
-                                    </td>
-                                    <td>
-                                        <div class="market-pills">
-                                            <span class="market-status status-local">Local</span>
-                                            <span class="market-status status-export">Export</span>
-                                        </div>
-                                    </td>
-                                    <td><span class="status status-approved">Approved</span></td>
-                                    <td>Jan 30, 2024</td>
-                                    <td>
-                                        <button class="btn-action"
-                                            onclick="viewProduct('Dried Mango Packs', 'Food Processing', '250g', '₱ 185.00', 'https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=400', 'Visayas Delicacies')">View
-                                            Info</button>
-                                    </td>
-                                </tr>
+                                            </td>
+                                            <td>
+                                                <div style="font-weight: 600; color: var(--primary-color); cursor: pointer;"
+                                                    onclick="viewMSME('<?php echo addslashes($p['business_name']); ?>')"><?php echo htmlspecialchars($p['business_name'] ?: $p['user_name']); ?></div>
+                                                <div class="msme-tag"><i class="fas fa-tag"></i> <?php echo ucfirst($p['enterprise_type'] ?: 'Micro'); ?> Enterprise</div>
+                                            </td>
+                                            <td>
+                                                <div class="market-pills">
+                                                    <span class="market-status status-local">Local</span>
+                                                    <?php if($p['intended_market'] === 'export'): ?>
+                                                        <span class="market-status status-export">Export</span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            </td>
+                                            <td><span class="status <?php echo $statusClass; ?>"><?php echo ucfirst($p['status']); ?></span></td>
+                                            <td><?php echo date('M d, Y', strtotime($p['created_at'])); ?></td>
+                                            <td>
+                                                <div style="display: flex; gap: 8px;">
+                                                    <?php if($p['status'] === 'pending'): ?>
+                                                        <button class="btn-approve" onclick="processProduct(<?php echo $p['id']; ?>, 'approved')">Approve</button>
+                                                        <button class="btn-reject" onclick="processProduct(<?php echo $p['id']; ?>, 'rejected')">Reject</button>
+                                                    <?php endif; ?>
+                                                    <button class="icon-btn" onclick="viewProductDetails(<?php echo htmlspecialchars(json_encode($p)); ?>)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
@@ -572,47 +541,84 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../../../js/main.js"></script>
-    const msmeModal = document.getElementById('msmeModal');
-    const productModal = document.getElementById('productModal');
+    <script>
+        const msmeModal = document.getElementById('msmeModal');
+        const productModal = document.getElementById('productModal');
 
-    function viewMSME(name) {
-    document.getElementById('modalMSMEName').innerText = name;
-    document.getElementById('modalLogo').src =
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=00205B&color=fff`;
-    msmeModal.style.display = 'flex';
-    }
+        function viewMSME(name) {
+            document.getElementById('modalMSMEName').innerText = name;
+            document.getElementById('modalLogo').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=00205B&color=fff`;
+            msmeModal.style.display = 'flex';
+        }
 
-    function closeModal() {
-    msmeModal.style.display = 'none';
-    }
+        function closeModal() {
+            msmeModal.style.display = 'none';
+        }
 
-    function viewProduct(name, cat, variant, price, img, msme) {
-    document.getElementById('pModalName').innerText = name;
-    document.getElementById('pModalCategory').innerText = cat;
-    document.getElementById('pModalVariant').innerText = variant;
-    document.getElementById('pModalPrice').innerText = price;
-    document.getElementById('pModalImg').src = img;
-    document.getElementById('pModalMSME').innerText = msme;
-    productModal.style.display = 'flex';
-    }
+        function viewProductDetails(p) {
+            const images = JSON.parse(p.product_images || '[]');
+            document.getElementById('pModalImg').src = images.length ? '../../../' + images[0] : 'https://via.placeholder.com/400?text=No+Image';
+            document.getElementById('pModalName').innerText = p.product_name;
+            document.getElementById('pModalCategory').innerText = p.category;
+            document.getElementById('pModalPrice').innerText = '₱ ' + parseFloat(p.srp).toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('pModalMSME').innerText = p.business_name || p.user_name;
+            document.getElementById('pModalVariant').innerText = p.packaging_type || 'N/A';
+            document.getElementById('pModalMarket').innerText = p.intended_market.charAt(0).toUpperCase() + p.intended_market.slice(1);
+            
+            productModal.style.display = 'flex';
+        }
 
-    function closeProductModal() {
-    productModal.style.display = 'none';
-    }
+        function closeProductModal() {
+            productModal.style.display = 'none';
+        }
 
-    function updateStatus(newStatus) {
-    alert(`Product has been marked as: ${newStatus}`);
-    }
+        async function processProduct(id, status) {
+            let remarks = '';
+            if (status === 'rejected') {
+                const { value: text } = await Swal.fire({
+                    title: 'Reason for Rejection',
+                    input: 'textarea',
+                    inputPlaceholder: 'Enter reason here...',
+                    showCancelButton: true
+                });
+                if (!text) return;
+                remarks = text;
+            } else {
+                const confirmed = await Swal.fire({
+                    title: 'Approve Product?',
+                    text: 'This will list the product in the official registry.',
+                    icon: 'question',
+                    showCancelButton: true
+                });
+                if (!confirmed.isConfirmed) return;
+            }
 
-    window.onclick = function (event) {
-    if (event.target == msmeModal) {
-    closeModal();
-    }
-    if (event.target == productModal) {
-    closeProductModal();
-    }
-    }
+            const formData = new FormData();
+            formData.append('action', 'process-product');
+            formData.append('product_id', id);
+            formData.append('status', status);
+            formData.append('remarks', remarks);
+
+            fetch('../../../ajax/products.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire('Success', data.message, 'success').then(() => location.reload());
+                } else {
+                    Swal.fire('Error', data.message, 'error');
+                }
+            });
+        }
+
+        window.onclick = function (event) {
+            if (event.target == msmeModal) closeModal();
+            if (event.target == productModal) closeProductModal();
+        }
     </script>
 </body>
 

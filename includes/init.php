@@ -115,3 +115,68 @@ function getFlash() {
     }
     return null;
 }
+
+/**
+ * Add a new notification
+ * 
+ * @param string $title
+ * @param string $message
+ * @param string $type (success, error, warning, info)
+ * @param string $role (target role)
+ * @param int|null $user_id (specific user id)
+ * @return int|bool
+ */
+function addNotification($title, $message, $type = 'info', $role = 'admin', $user_id = null) {
+    try {
+        $db = db();
+        return $db->insert('notifications', [
+            'title' => $title,
+            'message' => $message,
+            'type' => $type,
+            'role' => $role,
+            'user_id' => $user_id
+        ]);
+    } catch (Exception $e) {
+        error_log("Notification Error: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Get unread notifications for current user
+ * 
+ * @return array
+ */
+function getUnreadNotifications() {
+    if (!isLoggedIn()) return [];
+    
+    $user = getCurrentUser();
+    $db = db();
+    
+    // Notifications for specific user OR for the user's role
+    // Using role like 'admin' to target multiple users
+    $query = "SELECT * FROM notifications 
+              WHERE is_read = 0 
+              AND (user_id = ? OR role = ?) 
+              ORDER BY created_at DESC";
+    
+    return $db->fetchAll($query, [$user['id'], $user['role']]);
+}
+
+/**
+ * Get all notifications for current user (limit to 20)
+ * 
+ * @return array
+ */
+function getAllNotifications() {
+    if (!isLoggedIn()) return [];
+    
+    $user = getCurrentUser();
+    $db = db();
+    
+    $query = "SELECT * FROM notifications 
+              WHERE (user_id = ? OR role = ?) 
+              ORDER BY created_at DESC LIMIT 20";
+    
+    return $db->fetchAll($query, [$user['id'], $user['role']]);
+}

@@ -432,7 +432,7 @@ $users = $db->fetchAll("SELECT id, firstname, lastname, email, role, status, bus
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">0</span>
+                        <span class="badge" style="opacity: 0;">0</span>
                     </div>
                     <div class="user-profile">
                         <div class="user-info">

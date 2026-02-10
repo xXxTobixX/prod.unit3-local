@@ -19,6 +19,25 @@ if (!$user) {
 }
 
 $fullName = $user['firstname'] . ' ' . $user['lastname'];
+
+// Fetch user documents
+$docsFullQuery = "SELECT * FROM business_documents WHERE user_id = :id ORDER BY uploaded_at DESC";
+$documents = $db->fetchAll($docsFullQuery, ['id' => $userId]);
+
+// Helper to get doc by type
+function getDocByType($docs, $type) {
+    foreach ($docs as $doc) {
+        if ($doc['document_type'] === $type) return $doc;
+    }
+    return null;
+}
+
+$requiredDocs = [
+    ['type' => "Mayor's Permit", 'icon' => 'fa-file-invoice'],
+    ['type' => 'DTI Registration', 'icon' => 'fa-file-contract'],
+    ['type' => 'BIR Certificate', 'icon' => 'fa-file-signature'],
+    ['type' => 'Export Certification', 'icon' => 'fa-ship']
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -306,6 +325,56 @@ $fullName = $user['firstname'] . ' ' . $user['lastname'];
         body.dark-mode .form-group label i {
             color: #60a5fa;
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            animation: modalSlideUp 0.3s ease-out;
+        }
+
+        @keyframes modalSlideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
     </style>
 </head>
 
@@ -491,46 +560,50 @@ $fullName = $user['firstname'] . ' ' . $user['lastname'];
                                 Manage your business legal documents for verification.
                             </p>
 
-                            <div class="doc-card">
-                                <div class="doc-info">
-                                    <div class="doc-icon"><i class="fas fa-file-invoice"></i></div>
-                                    <div>
-                                        <div style="font-weight: 600;">Mayor's Permit</div>
-                                        <div style="font-size: 11px; color: var(--success-color);"><i
-                                                class="fas fa-check-circle"></i> Verified & Active</div>
-                                    </div>
-                                </div>
-                                <button class="btn-action-outline">Replace</button>
-                            </div>
-
-                            <div class="doc-card">
-                                <div class="doc-info">
-                                    <div class="doc-icon"><i class="fas fa-file-contract"></i></div>
-                                    <div>
-                                        <div style="font-weight: 600;">DTI Registration</div>
-                                        <div style="font-size: 11px; color: var(--success-color);"><i
-                                                class="fas fa-check-circle"></i> Verified & Active</div>
-                                    </div>
-                                </div>
-                                <button class="btn-action-outline">Replace</button>
-                            </div>
-
-                            <div class="doc-card"
-                                style="border-style: dashed; background: transparent; border-color: var(--border-color);">
-                                <div class="doc-info">
-                                    <div class="doc-icon"
-                                        style="background: var(--bg-color); color: var(--text-muted);">
-                                        <i class="fas fa-plus"></i>
-                                    </div>
-                                    <div>
-                                        <div style="font-weight: 600; color: var(--text-muted);">Export Certification
+                            <div id="document-list">
+                                <?php foreach ($requiredDocs as $req): 
+                                    $existingDoc = getDocByType($documents, $req['type']);
+                                ?>
+                                    <div class="doc-card <?php echo !$existingDoc ? 'dashed' : ''; ?>" 
+                                         style="<?php echo !$existingDoc ? 'border-style: dashed; background: transparent; border-color: var(--border-color);' : ''; ?>">
+                                        <div class="doc-info">
+                                            <div class="doc-icon" style="<?php echo !$existingDoc ? 'background: var(--bg-color); color: var(--text-muted);' : ''; ?>">
+                                                <i class="fas <?php echo $req['icon']; ?>"></i>
+                                            </div>
+                                            <div>
+                                                <div style="font-weight: 600;"><?php echo $req['type']; ?></div>
+                                                <?php if ($existingDoc): ?>
+                                                    <?php if ($existingDoc['status'] === 'verified'): ?>
+                                                        <div style="font-size: 11px; color: var(--success-color);">
+                                                            <i class="fas fa-check-circle"></i> Verified & Active
+                                                        </div>
+                                                    <?php elseif ($existingDoc['status'] === 'pending'): ?>
+                                                        <div style="font-size: 11px; color: var(--warning-color);">
+                                                            <i class="fas fa-clock"></i> Pending Verification
+                                                        </div>
+                                                    <?php else: ?>
+                                                        <div style="font-size: 11px; color: var(--danger-color);">
+                                                            <i class="fas fa-times-circle"></i> Rejected: <?php echo htmlspecialchars($existingDoc['remarks'] ?? 'Invalid file'); ?>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                <?php else: ?>
+                                                    <div style="font-size: 11px; color: var(--text-muted);">Not Uploaded</div>
+                                                <?php endif; ?>
+                                            </div>
                                         </div>
-                                        <div style="font-size: 11px; color: var(--text-muted);">Not Uploaded</div>
+                                        
+                                        <?php if ($existingDoc): ?>
+                                            <div style="display: flex; gap: 10px;">
+                                                <a href="../../../<?php echo $existingDoc['file_path']; ?>" target="_blank" class="btn-action-outline">View</a>
+                                                <button class="btn-action-outline" onclick="openUploadModal('<?php echo $req['type']; ?>')">Replace</button>
+                                            </div>
+                                        <?php else: ?>
+                                            <button class="btn-primary" style="padding: 10px 18px; font-size: 12px;" onclick="openUploadModal('<?php echo $req['type']; ?>')">
+                                                <i class="fas fa-upload"></i> Upload File
+                                            </button>
+                                        <?php endif; ?>
                                     </div>
-                                </div>
-                                <button class="btn-primary" style="padding: 10px 18px; font-size: 12px;">
-                                    <i class="fas fa-upload"></i> Upload File
-                                </button>
+                                <?php endforeach; ?>
                             </div>
                         </div>
                     </div>
@@ -538,6 +611,87 @@ $fullName = $user['firstname'] . ' ' . $user['lastname'];
             </div>
         </main>
     </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Upload <span id="modal-doc-type">Document</span></h3>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="uploadForm">
+                <input type="hidden" name="document_type" id="hidden-doc-type">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label>Select File (PDF, JPG, PNG - Max 5MB)</label>
+                    <input type="file" name="document_file" id="document_file" required accept=".pdf,.jpg,.jpeg,.png">
+                </div>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="button" class="btn-secondary" style="flex: 1;" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-primary" style="flex: 1;">Upload Document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function openUploadModal(type) {
+            document.getElementById('modal-doc-type').textContent = type;
+            document.getElementById('hidden-doc-type').value = type;
+            document.getElementById('uploadModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            document.getElementById('uploadForm').reset();
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('action', 'upload-document');
+
+            const btn = this.querySelector('button[type="submit"]');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            btn.disabled = true;
+
+            fetch('../../../ajax/compliance.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message,
+                        timer: 2000
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Failed',
+                        text: data.message
+                    });
+                    btn.innerHTML = 'Upload Document';
+                    btn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'System Error',
+                    text: 'An error occurred during upload.'
+                });
+                btn.innerHTML = 'Upload Document';
+                btn.disabled = false;
+            });
+        });
+    </script>
 
     <script src="../../../js/main.js"></script>
 </body>
