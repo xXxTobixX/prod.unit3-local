@@ -17,8 +17,8 @@
     --text-main: #1E293B;
     --text-muted: #64748B;
     --border-color: #E2E8F0;
-    --sidebar-width: 260px;
-    --sidebar-collapsed-width: 80px;
+    --sidebar-width: 220px;
+    --sidebar-collapsed-width: 70px;
     --header-height: 70px;
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.12);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -209,60 +209,65 @@ body.collapsed-sidebar .sidebar .sidebar-nav i {
 }
 
 .sidebar-header {
-    padding: 24px;
+    padding: 10px 14px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     border-bottom: 1px solid var(--border-color);
 }
 
 .gov-logo {
-    width: 40px;
-    height: 40px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
 }
 
 .header-text h1 {
-    font-size: 18px;
+    font-size: 14px;
     font-weight: 800;
     color: #ffffff;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.2px;
+    margin: 0;
 }
 
 .header-text p {
-    font-size: 10px;
+    font-size: 7px;
     color: rgba(255, 255, 255, 0.6);
     font-weight: 600;
     text-transform: uppercase;
+    margin: 2px 0 0 0;
 }
 
 .sidebar-nav {
-    padding: 20px 0;
+    padding: 6px 0;
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .sidebar-nav ul {
     list-style: none;
-    padding: 0 16px;
+    padding: 0 8px;
+    margin: 0;
 }
 
 .sidebar-nav li {
-    margin-bottom: 4px;
+    margin-bottom: 0px;
 }
 
 .sidebar-nav a {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
+    gap: 7px;
+    padding: 5px 10px;
     text-decoration: none;
     color: var(--sidebar-text);
-    font-size: 14px;
+    font-size: 11px;
     font-weight: 500;
-    border-radius: 8px;
+    border-radius: 5px;
     transition: all 0.2s ease;
     cursor: pointer;
+    line-height: 1.2;
 }
 
 .sidebar-nav li.active a {
@@ -280,9 +285,10 @@ body.collapsed-sidebar .sidebar .sidebar-nav i {
 }
 
 .sidebar-nav i {
-    width: 20px;
-    font-size: 18px;
+    width: 14px;
+    font-size: 13px;
     transition: transform 0.2s ease;
+    flex-shrink: 0;
 }
 
 .sidebar-nav a:hover i {
@@ -292,7 +298,7 @@ body.collapsed-sidebar .sidebar .sidebar-nav i {
 .nav-divider {
     height: 1px;
     background-color: rgba(255, 255, 255, 0.1);
-    margin: 16px 24px;
+    margin: 6px 14px;
 }
 
 .logout a:hover {
@@ -402,19 +408,184 @@ body.collapsed-sidebar .top-header {
     font-size: 20px;
     color: var(--text-muted);
     cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.notifications:hover {
+    background: rgba(0, 32, 91, 0.05);
+    color: var(--primary-color);
+}
+
+body.dark-mode .notifications:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #60a5fa;
 }
 
 .badge {
     position: absolute;
-    top: -5px;
-    right: -5px;
+    top: 0;
+    right: 0;
     background: var(--danger-color);
     color: white;
     font-size: 10px;
     font-weight: 700;
-    padding: 2px 5px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 10px;
-    border: 2px solid #FFF;
+    border: 2px solid var(--card-bg);
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 320px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+    display: none;
+    flex-direction: column;
+    z-index: 1001;
+    margin-top: 12px;
+    overflow: hidden;
+    animation: fadeInDown 0.3s ease;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.notification-dropdown.active {
+    display: flex;
+}
+
+.notification-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-header h3 {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.mark-read {
+    font-size: 12px;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+body.dark-mode .mark-read {
+    color: #60a5fa;
+}
+
+.notification-list {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    gap: 12px;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: inherit;
+}
+
+.notification-item:hover {
+    background: rgba(0, 32, 91, 0.02);
+}
+
+body.dark-mode .notification-item:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.notification-icon.info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+}
+
+.notification-icon.success {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+}
+
+.notification-icon.warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+}
+
+.notification-icon.error {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+}
+
+.notification-content h4 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--text-main);
+}
+
+.notification-content p {
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.notification-time {
+    font-size: 10px;
+    color: var(--text-muted);
+}
+
+.notification-footer {
+    padding: 12px;
+    text-align: center;
+    background: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+}
+
+.notification-footer a {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-decoration: none;
+    font-weight: 600;
 }
 
 .user-profile {

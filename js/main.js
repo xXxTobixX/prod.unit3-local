@@ -346,6 +346,52 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => overlay.classList.add('active'), 10);
     };
 
+    /**
+     * Help Center Modal
+     */
+    const showHelpCenter = () => {
+        const isDark = document.body.classList.contains('dark-mode');
+        const theme = {
+            background: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#f1f5f9' : '#1e293b',
+            confirmButtonColor: isDark ? '#3b82f6' : '#00205B'
+        };
+
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: '<i class="fas fa-question-circle" style="color: var(--primary-color)"></i> Help Center',
+                background: theme.background,
+                color: theme.color,
+                html: `
+                    <div style="text-align: left; padding: 10px;">
+                        <h4 style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Quick Guides</h4>
+                        <div class="help-item" style="margin-bottom: 15px;">
+                            <strong style="display:block; color: var(--primary-color);"><i class="fas fa-id-card"></i> Profile Verification</strong>
+                            <p style="font-size: 13px; margin: 5px 0;">Ensure your business documents (Mayor's Permit, DTI, BIR) are uploaded and verified to access full incentives.</p>
+                        </div>
+                        <div class="help-item" style="margin-bottom: 15px;">
+                            <strong style="display:block; color: var(--primary-color);"><i class="fas fa-box"></i> Product Registration</strong>
+                            <p style="font-size: 13px; margin: 5px 0;">Go to "My Products" to list your offerings. Admin approval is required before they become visible in the marketplace.</p>
+                        </div>
+                        <div class="help-item" style="margin-bottom: 20px;">
+                            <strong style="display:block; color: var(--primary-color);"><i class="fas fa-shield-alt"></i> Security Settings</strong>
+                            <p style="font-size: 13px; margin: 5px 0;">You can manage your password and Two-Factor Authentication (OTP) in your Profile Settings.</p>
+                        </div>
+                        
+                        <h4 style="margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">Contact Support</h4>
+                        <div style="background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; padding: 12px; border-radius: 8px; font-size: 13px;">
+                            <p><i class="fas fa-envelope"></i> Email: support@lgu3msme.gov.ph</p>
+                            <p><i class="fas fa-phone"></i> Hotline: (02) 8888-MSME</p>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'Got it',
+                confirmButtonColor: theme.confirmButtonColor,
+                showCloseButton: true
+            });
+        }
+    };
+
     // Initialize Theme
     initTheme();
 
@@ -354,6 +400,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Theme Toggle
         if (e.target.closest('.theme-toggle')) {
             toggleTheme();
+        }
+
+        // Help Center
+        if (e.target.closest('.nav-help') || e.target.closest('#help-trigger')) {
+            e.preventDefault();
+            showHelpCenter();
         }
 
         // Logout Triggers

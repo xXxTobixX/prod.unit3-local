@@ -78,6 +78,34 @@ if ($action === 'login') {
     }
 
     if ($user && password_verify($password, $user['password'])) {
+        // Check if 2FA is enabled (Default to 1/Enabled)
+        $is2FAEnabled = (int)($user['two_factor_enabled'] ?? 1);
+
+        if ($is2FAEnabled === 0) {
+            // Bypass OTP if disabled
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['user_email'] = $user['email'];
+            $_SESSION['user_role'] = strtolower($user['role'] ?? 'user');
+            $_SESSION['user_name'] = ($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? '');
+            $_SESSION['business_name'] = $user['business_name'] ?? null;
+            
+            // Refresh Logo
+            $profile = $db->fetchOne("SELECT logo_path FROM business_profiles WHERE user_id = ?", [$user['id']]);
+            $_SESSION['business_logo'] = $profile['logo_path'] ?? null;
+
+            $_SESSION['profile_completed'] = (bool)($user['profile_completed'] ?? false);
+            if (in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin'])) $_SESSION['profile_completed'] = true;
+
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Login successful (2FA Bypassed).',
+                'no_otp' => true,
+                'role' => $_SESSION['user_role'],
+                'profile_completed' => $_SESSION['profile_completed']
+            ]);
+            exit;
+        }
+
         // Generate OTP
         $otp = sprintf("%06d", mt_rand(0, 999999));
         $expires = date('Y-m-d H:i:s', strtotime('+10 minutes'));
@@ -150,6 +178,10 @@ if ($action === 'verify-otp') {
         $_SESSION['user_role'] = strtolower($role);
         $_SESSION['user_name'] = ($user['firstname'] ?? '') . ' ' . ($user['lastname'] ?? '');
         $_SESSION['business_name'] = $user['business_name'] ?? null;
+        
+        // Fetch logo path from business_profiles if exists
+        $profile = $db->fetchOne("SELECT logo_path FROM business_profiles WHERE user_id = ?", [$user['id']]);
+        $_SESSION['business_logo'] = $profile['logo_path'] ?? null;
         
         // Administrative roles automatically bypass profile completion
         $isAdminRole = in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin', 'manager']);
@@ -475,3 +507,87 @@ if ($action === 'reset-password') {
     }
 }
 
+/**
+ * Handle Password Change from Profile
+ */
+if ($action === 'change-password') {
+    if (!isLoggedIn()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized.']);
+        exit;
+    }
+
+    $userId = $_SESSION['user_id'];
+    $currentPassword = $_POST['current_password'] ?? '';
+    $newPassword = $_POST['new_password'] ?? '';
+
+    if (empty($currentPassword) || empty($newPassword)) {
+        echo json_encode(['success' => false, 'message' => 'All fields are required.']);
+        exit;
+    }
+
+    $db = db();
+    $user = $db->fetchOne("SELECT password FROM users WHERE id = ?", [$userId]);
+
+    if ($user && password_verify($currentPassword, $user['password'])) {
+        $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
+        $db->update('users', ['password' => $hashed], 'id = :id', ['id' => $userId]);
+        echo json_encode(['success' => true, 'message' => 'Password updated successfully!']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Incorrect current password.']);
+    }
+}
+
+/**
+ * Handle 2FA Settings Update
+ */
+if ($action === 'update-2fa') {
+    if (!isLoggedIn()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized.']);
+        exit;
+    }
+
+    $userId = $_SESSION['user_id'];
+    $enabled = (int)($_POST['enabled'] ?? 1);
+    $db = db();
+
+    try {
+        $db->update('users', ['two_factor_enabled' => $enabled], 'id = :id', ['id' => $userId]);
+        echo json_encode(['success' => true, 'message' => '2FA settings updated.']);
+    } catch (Exception $e) {
+        if (strpos($e->getMessage(), 'Unknown column') !== false || strpos($e->getMessage(), 'two_factor_enabled') !== false) {
+            try {
+                $db->query("ALTER TABLE users ADD COLUMN two_factor_enabled TINYINT(1) DEFAULT 1 AFTER status");
+                $db->update('users', ['two_factor_enabled' => $enabled], 'id = :id', ['id' => $userId]);
+                echo json_encode(['success' => true, 'message' => '2FA settings updated (Table repaired).']);
+                exit;
+            } catch (Exception $e2) {
+                 echo json_encode(['success' => false, 'message' => 'Database error during repair: ' . $e2->getMessage()]);
+                 exit;
+            }
+        }
+        echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    }
+}
+
+/**
+ * Handle Account Deactivation
+ */
+if ($action === 'deactivate-account') {
+    if (!isLoggedIn()) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized.']);
+        exit;
+    }
+
+    $userId = $_SESSION['user_id'];
+    $db = db();
+    
+    // Set status to deactivated instead of deleting
+    $success = $db->update('users', ['status' => 'deactivated'], 'id = :id', ['id' => $userId]);
+    
+    if ($success) {
+        session_destroy();
+        echo json_encode(['success' => true, 'message' => 'Account deactivated.']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Failed to deactivate account.']);
+    }
+}

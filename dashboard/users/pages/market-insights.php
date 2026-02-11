@@ -2,6 +2,9 @@
 require_once '../../../includes/init.php'; 
 if (!isLoggedIn()) { redirect('../../../login.php'); } 
 if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php'); } 
+
+$unreadNotifs = getUnreadNotifications();
+$notifCount = count($unreadNotifs);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -103,8 +106,8 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                 <div class="nav-divider"></div>
 
                 <ul>
-                    <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
-                    <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+                    <li><a href="profile-management.php"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+                    <li><a href="help-center.php"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
                     <li class="logout"><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
             </nav>
@@ -127,14 +130,19 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">2</span>
+                        <span class="badge" style="<?php echo $notifCount > 0 ? '' : 'display: none;'; ?>"><?php echo $notifCount; ?></span>
                     </div>
                     <div class="user-profile">
                         <div class="user-info">
                             <span class="user-name"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'User'); ?></span>
                             <span class="user-role">Business Owner</span>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=Juana+Dela+Cruz&background=00205B&color=fff"
+                        <?php 
+                            $topbarLogo = !empty($_SESSION['business_logo']) 
+                                ? '../../../' . $_SESSION['business_logo'] 
+                                : "https://ui-avatars.com/api/?name=" . urlencode($_SESSION['user_name'] ?? 'User') . "&background=00205B&color=fff";
+                        ?>
+                        <img src="<?php echo $topbarLogo; ?>"
                             alt="User Avatar" class="avatar">
                     </div>
                     <div class="search-bar">
@@ -233,6 +241,7 @@ if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php')
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="../../../js/main.js"></script>
 </body>
 

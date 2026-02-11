@@ -1,564 +1,200 @@
-<!DOCTYPE html>
-<html lang="en">
+<?php
+require_once '../../../includes/init.php';
+if (!isLoggedIn() || !in_array($_SESSION['user_role'], ['admin', 'staff', 'superadmin', 'manager'])) {
+    redirect('../../../login.php');
+}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Incentives & Assistance - LGU 3 Administrative Portal</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../../../css/style.css">
-    <style>
-        /* Incentives Specific Styles */
-        .assistance-grid {
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 24px;
-        }
+// Page configuration
+$pageTitle = "Incentives & Support - LGU 3";
+$pageHeading = "Incentives & Support Programs";
+$activePage = "incentives-assistance";
+$baseUrl = "";
 
-        .grant-card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid var(--border-color);
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: all 0.3s;
-        }
+include '../layouts/header.php';
+include '../layouts/sidebar.php';
+include '../layouts/navbar.php';
+?>
 
-        .grant-card:hover {
-            box-shadow: var(--shadow-md);
-            transform: scale(1.01);
-        }
+<style>
+    /* Incentives Specific Styles */
+    .assistance-grid {
+        display: grid;
+        grid-template-columns: 1fr 380px;
+        gap: 24px;
+    }
 
-        .grant-info {
-            display: flex;
-            gap: 20px;
-            align-items: center;
-        }
+    .grant-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 24px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s;
+    }
 
-        .grant-icon {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-        }
+    .grant-card:hover {
+        box-shadow: var(--shadow-md);
+        transform: scale(1.01);
+    }
 
-        .icon-equity {
-            background: rgba(16, 185, 129, 0.1);
-            color: var(--success-color);
-        }
+    .grant-info {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
 
-        .icon-loan {
-            background: rgba(59, 130, 246, 0.1);
-            color: #2563EB;
-        }
+    .grant-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
 
-        .icon-subsidy {
-            background: rgba(245, 158, 11, 0.1);
-            color: var(--warning-color);
-        }
+    .grant-icon.blue {
+        background: rgba(59, 130, 246, 0.1);
+        color: #2563EB;
+    }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 30px;
-        }
+    .grant-icon.green {
+        background: rgba(16, 185, 129, 0.1);
+        color: var(--success-color);
+    }
 
-        .stat-card-mini {
-            background: var(--card-bg);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-        }
+    .grant-icon.purple {
+        background: rgba(139, 92, 246, 0.1);
+        color: #8B5CF6;
+    }
 
-        .workflow-steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            position: relative;
-        }
+    .grant-icon.orange {
+        background: rgba(245, 158, 11, 0.1);
+        color: var(--warning-color);
+    }
+</style>
 
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            z-index: 1;
-            flex: 1;
-        }
+<div class="assistance-grid">
+    <!-- Main Content -->
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+            <h3>Available Incentive Programs</h3>
+            <button class="btn-primary"><i class="fas fa-plus"></i> Create New Program</button>
+        </div>
 
-        .step-circle {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: var(--border-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 8px;
-            border: 2px solid var(--card-bg);
-        }
-
-        .step.active .step-circle {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .step.completed .step-circle {
-            background: var(--success-color);
-            color: white;
-        }
-
-        .step-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-muted);
-        }
-
-        .workflow-line {
-            position: absolute;
-            top: 16px;
-            left: 10%;
-            width: 80%;
-            height: 2px;
-            background: var(--border-color);
-            z-index: 0;
-        }
-
-
-        .tracking-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        .tracking-table th {
-            text-align: left;
-            padding: 12px;
-            font-size: 12px;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .tracking-table td {
-            padding: 16px 12px;
-            font-size: 13px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .status-tracker {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-        }
-
-        .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-        }
-
-        .dot-processing {
-            background: var(--warning-color);
-        }
-
-        .dot-approved {
-            background: var(--success-color);
-        }
-
-        .dot-fund {
-            background: var(--primary-color);
-        }
-
-        /* Application Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-        }
-
-        .modal-content {
-            background: var(--card-bg);
-            padding: 32px;
-            border-radius: 20px;
-            width: 100%;
-            max-width: 600px;
-            color: var(--text-main);
-        }
-
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="dashboard-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <img src="../../../images/logo.png" alt="PH Logo" class="gov-logo">
-                <div class="header-text">
-                    <h1>LGU 3</h1>
-                    <p>Administrative Portal</p>
+        <div class="grant-card">
+            <div class="grant-info">
+                <div class="grant-icon blue">
+                    <i class="fas fa-hand-holding-usd"></i>
                 </div>
-            </div>
-            <nav class="sidebar-nav">
-                <ul>
-                    <li><a href="../index.php"><i class="fas fa-th-large"></i> <span>Dashboard</span></a></li>
-                    <li><a href="user-management.php"><i class="fas fa-user-shield"></i> <span>User
-                                Management</span></a></li>
-                    <li><a href="product-registry.php"><i class="fas fa-building"></i> <span>Product & MSME
-                                Registry</span></a></li>
-                    <li><a href="compliance-monitoring.php"><i class="fas fa-clipboard-check"></i> <span>Compliance
-                                Monitoring</span></a></li>
-                    <li><a href="program-training.php"><i class="fas fa-graduation-cap"></i> <span>Program &
-                                Training</span></a></li>
-                    <li><a href="market-opportunities.php"><i class="fas fa-handshake"></i> <span>Market & Trade
-                                Management</span></a></li>
-                    <li class="active"><a href="#"><i class="fas fa-gift"></i> <span>Incentives & Support</span></a>
-                    </li>
-                    <li><a href="reports-analytics.php"><i class="fas fa-chart-bar"></i> <span>Reports &
-                                Analytics</span></a></li>
-                </ul>
-
-                <div class="nav-divider"></div>
-
-                <ul>
-                    <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
-                    <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
-                    <li class="logout"><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
-                </ul>
-            </nav>
-        </aside>
-
-        <main class="main-content">
-            <header class="top-header">
-                <div class="header-left">
-                    <button id="toggle-sidebar" class="icon-btn"><i class="fas fa-bars"></i></button>
-                    <h2>Financial Incentives & Assistance</h2>
-                </div>
-                <div class="header-right">
-                    <div class="theme-toggle" title="Toggle Theme">
-                        <div class="theme-switch">
-                            <div class="theme-switch-handle">
-                                <i class="fas fa-sun"></i>
-                                <i class="fas fa-moon"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="badge">3</span>
-                    </div>
-                    <div class="user-profile">
-                        <div class="user-info">
-                            <span class="user-name">Hon. Admin</span>
-                            <span class="user-role">Administrator</span>
-                        </div>
-                        <img src="https://ui-avatars.com/api/?name=Admin&background=00205B&color=fff" alt="User Avatar"
-                            class="avatar">
-                    </div>
-                </div>
-            </header>
-
-            <div class="content-wrapper">
-                <div class="stats-grid">
-                    <div class="stat-card-mini">
-                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Total Disbursed
-                        </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary-color);">₱ 2.45M</div>
-                    </div>
-                    <div class="stat-card-mini">
-                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Pending Applications
-                        </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--warning-color);">14 Claims</div>
-                    </div>
-                    <div class="stat-card-mini">
-                        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Available Funds
-                        </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-color);">₱ 5.00M</div>
-                    </div>
-                </div>
-
-                <div class="assistance-grid">
-                    <!-- Grants/Loans Catalog -->
-                    <div>
-                        <h3 style="margin-bottom: 20px;">Available Programs</h3>
-
-                        <div class="grant-card">
-                            <div class="grant-info">
-                                <div class="grant-icon icon-equity"><i class="fas fa-seedling"></i></div>
-                                <div>
-                                    <h4 style="color: var(--primary-color);">LGU Startup Recovery Grant</h4>
-                                    <p style="font-size: 13px; color: var(--text-muted);">Up to ₱50,000 for equipment
-                                        modernization.</p>
-                                </div>
-                            </div>
-                            <button class="btn-primary" onclick="openAppModal('Recovery Grant')">Apply Now</button>
-                        </div>
-
-                        <div class="grant-card">
-                            <div class="grant-info">
-                                <div class="grant-icon icon-loan"><i class="fas fa-hand-holding-usd"></i></div>
-                                <div>
-                                    <h4 style="color: var(--primary-color);">Low-Interest Capital Loan</h4>
-                                    <p style="font-size: 13px; color: var(--text-muted);">Expanding production capacity
-                                        (0.5% annual rate).</p>
-                                </div>
-                            </div>
-                            <button class="btn-primary" onclick="openAppModal('Capital Loan')">Apply Now</button>
-                        </div>
-
-                        <div class="grant-card">
-                            <div class="grant-info">
-                                <div class="grant-icon icon-subsidy"><i class="fas fa-tags"></i></div>
-                                <div>
-                                    <h4 style="color: var(--primary-color);">Export Logistics Subsidy</h4>
-                                    <p style="font-size: 13px; color: var(--text-muted);">50% rebate on shipping costs
-                                        for regional trade fairs.</p>
-                                </div>
-                            </div>
-                            <button class="btn-primary" onclick="openAppModal('Logistics Subsidy')">Apply Now</button>
-                        </div>
-
-                        <div class="card" style="margin-top: 32px;">
-                            <div class="card-header">
-                                <h3>Status Tracking</h3>
-                            </div>
-                            <div style="padding: 0 24px 24px;">
-                                <table class="tracking-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Ref #</th>
-                                            <th>Enterprise</th>
-                                            <th>Program</th>
-                                            <th>Current Phase</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td style="font-weight:700;">#GR-7721</td>
-                                            <td>Bukidnon Farms</td>
-                                            <td>Modernization</td>
-                                            <td>
-                                                <div class="status-tracker">
-                                                    <div class="dot dot-processing"></div> Reviewing Docs
-                                                </div>
-                                            </td>
-                                            <td><button class="btn-action"
-                                                    onclick="openApprovalModal('#GR-7721', 'Bukidnon Farms', '₱ 50,000')">Review
-                                                    App</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td style="font-weight:700;">#LN-4410</td>
-                                            <td>Visayas Delicacies</td>
-                                            <td>Expansion</td>
-                                            <td>
-                                                <div class="status-tracker">
-                                                    <div class="dot dot-approved"></div> Approved
-                                                </div>
-                                            </td>
-                                            <td><button class="btn-action">View Letter</button></td>
-                                        </tr>
-                                        <tr>
-                                            <td style="font-weight:700;">#GR-7705</td>
-                                            <td>Luzon Crafts Hub</td>
-                                            <td>Recovery</td>
-                                            <td>
-                                                <div class="status-tracker">
-                                                    <div class="dot dot-fund"></div> Disbursed
-                                                </div>
-                                            </td>
-                                            <td><button class="btn-action">Reciept</button></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Assistance Sidebar -->
-                    <div>
-                        <div class="card"
-                            style="padding: 24px; margin-bottom: 24px; background: var(--primary-color); color: white;">
-                            <h4 style="margin-bottom: 12px;"><i class="fas fa-info-circle"></i> Quick Guide</h4>
-                            <p style="font-size: 13px; opacity: 0.8; line-height: 1.6;">
-                                To qualify for incentives, MSMEs must have:
-                            <ul style="margin-top: 10px; padding-left: 20px; font-size: 12px;">
-                                <li>Current Business Permit</li>
-                                <li>Satisfactory Compliance Rating</li>
-                                <li>Minimum 6 Months Operation</li>
-                            </ul>
-                            </p>
-                        </div>
-
-                        <div class="card" style="padding: 24px;">
-                            <h4 style="margin-bottom: 16px;">Assistance Hotline</h4>
-                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-                                <i class="fas fa-phone-alt" style="color: var(--primary-color);"></i>
-                                <span style="font-size: 14px; font-weight: 600;">(02) 8888-9999</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <i class="fas fa-envelope" style="color: var(--primary-color);"></i>
-                                <span style="font-size: 14px; font-weight: 600;">support@lgu3.gov.ph</span>
-                            </div>
-                        </div>
+                <div>
+                    <h4 style="margin: 0;">Startup Capital Grant</h4>
+                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">Up to ₱50,000 for new MSMEs</p>
+                    <div style="margin-top: 8px; font-size: 12px;">
+                        <span style="color: var(--success-color);"><i class="fas fa-check-circle"></i> 12 Approved</span>
+                        <span style="margin-left: 15px; color: var(--warning-color);"><i class="fas fa-clock"></i> 8 Pending</span>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+            <button class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Manage</button>
+        </div>
 
-    <!-- Approval Workflow Modal -->
-    <div id="approvalModal" class="modal-overlay">
-        <div class="modal-content" style="max-width: 700px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h3>Application Approval Workflow</h3>
-                <span id="appID" style="font-weight: 700; color: var(--primary-color);">#GR-7721</span>
-            </div>
-
-            <div class="workflow-steps">
-                <div class="workflow-line"></div>
-                <div class="step completed">
-                    <div class="step-circle"><i class="fas fa-check"></i></div>
-                    <div class="step-label">Submission</div>
+        <div class="grant-card">
+            <div class="grant-info">
+                <div class="grant-icon green">
+                    <i class="fas fa-seedling"></i>
                 </div>
-                <div class="step active">
-                    <div class="step-circle">2</div>
-                    <div class="step-label">LGU Review</div>
-                </div>
-                <div class="step">
-                    <div class="step-circle">3</div>
-                    <div class="step-label">Board Approval</div>
-                </div>
-                <div class="step">
-                    <div class="step-circle">4</div>
-                    <div class="step-label">Fund Release</div>
-                </div>
-            </div>
-
-            <div style="background: var(--bg-color); padding: 20px; border-radius: 12px; margin-bottom: 24px;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div>
-                        <div style="font-size: 12px; color: var(--text-muted);">Enterprise Name</div>
-                        <div id="reviewEnterprise" style="font-weight: 600;">Bukidnon Farms Co.</div>
-                    </div>
-                    <div>
-                        <div style="font-size: 12px; color: var(--text-muted);">Requested Amount</div>
-                        <div id="reviewAmount" style="font-weight: 600;">₱ 50,000.00</div>
-                    </div>
-                    <div style="grid-column: span 2;">
-                        <div style="font-size: 12px; color: var(--text-muted);">Administrative Remarks</div>
-                        <textarea placeholder="Add notes for the secondary committee..."
-                            style="width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); height: 60px; margin-top: 8px;"></textarea>
+                <div>
+                    <h4 style="margin: 0;">Agriculture Modernization Fund</h4>
+                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">Equipment & technology support</p>
+                    <div style="margin-top: 8px; font-size: 12px;">
+                        <span style="color: var(--success-color);"><i class="fas fa-check-circle"></i> 18 Approved</span>
+                        <span style="margin-left: 15px; color: var(--warning-color);"><i class="fas fa-clock"></i> 5 Pending</span>
                     </div>
                 </div>
             </div>
+            <button class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Manage</button>
+        </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 12px;">
-                <button class="btn-secondary"
-                    style="background: rgba(239, 68, 68, 0.1); color: var(--danger-color); border: none;"
-                    onclick="alert('Application Returned for Correction'); closeApprovalModal();">Flag for
-                    Correction</button>
-                <button class="btn-primary"
-                    onclick="alert('Proceeding to Board for Final Approval'); closeApprovalModal();">Endorse to
-                    Board</button>
+        <div class="grant-card">
+            <div class="grant-info">
+                <div class="grant-icon purple">
+                    <i class="fas fa-globe"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0;">Export Market Development</h4>
+                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">Trade fair participation & certification</p>
+                    <div style="margin-top: 8px; font-size: 12px;">
+                        <span style="color: var(--success-color);"><i class="fas fa-check-circle"></i> 9 Approved</span>
+                        <span style="margin-left: 15px; color: var(--warning-color);"><i class="fas fa-clock"></i> 3 Pending</span>
+                    </div>
+                </div>
             </div>
+            <button class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Manage</button>
+        </div>
+
+        <div class="grant-card">
+            <div class="grant-info">
+                <div class="grant-icon orange">
+                    <i class="fas fa-laptop-code"></i>
+                </div>
+                <div>
+                    <h4 style="margin: 0;">Digital Transformation Subsidy</h4>
+                    <p style="margin: 4px 0 0; font-size: 13px; color: var(--text-muted);">E-commerce & digital tools support</p>
+                    <div style="margin-top: 8px; font-size: 12px;">
+                        <span style="color: var(--success-color);"><i class="fas fa-check-circle"></i> 15 Approved</span>
+                        <span style="margin-left: 15px; color: var(--warning-color);"><i class="fas fa-clock"></i> 11 Pending</span>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-secondary" style="padding: 8px 16px; font-size: 13px;">Manage</button>
         </div>
     </div>
 
-    <div id="appModal" class="modal-overlay">
-        <div class="modal-content">
-            <h3 id="modalTitle" style="margin-bottom: 24px; color: var(--primary-color);">Application Form</h3>
-            <form
-                onsubmit="event.preventDefault(); alert('Application submitted! Your reference id is: #GR-' + Math.floor(Math.random()*9000)); closeAppModal();">
-                <div class="form-group" style="margin-bottom: 16px;">
-                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Target
-                        Enterprise</label>
-                    <select style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border-color);">
-                        <option>Bukidnon Farms Co.</option>
-                        <option>Luzon Crafts Hub</option>
-                        <option>Visayas Delicacies</option>
-                    </select>
+    <!-- Sidebar -->
+    <div>
+        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+            <h4 style="margin-bottom: 20px;">Program Overview</h4>
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="font-size: 14px;">Total Programs</span>
+                    <strong style="color: var(--primary-color);">8</strong>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Requested
-                            Amount</label>
-                        <input type="number" placeholder="₱"
-                            style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border-color);">
-                    </div>
-                    <div class="form-group">
-                        <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Repayment
-                            Term</label>
-                        <select
-                            style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border-color);">
-                            <option>Grant (N/A)</option>
-                            <option>12 Months</option>
-                            <option>24 Months</option>
-                        </select>
-                    </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="font-size: 14px;">Active Applications</span>
+                    <strong style="color: var(--warning-color);">27</strong>
                 </div>
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label style="display:block; font-size:13px; font-weight:600; margin-bottom:6px;">Purpose of
-                        Funds</label>
-                    <textarea placeholder="Briefly describe how the funds will be used..."
-                        style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--border-color); height: 80px; font-family: inherit;"></textarea>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="font-size: 14px;">Approved This Month</span>
+                    <strong style="color: var(--success-color);">54</strong>
                 </div>
-                <div style="display: flex; justify-content: flex-end; gap: 12px;">
-                    <button type="button" class="btn-secondary" onclick="closeAppModal()">Discard</button>
-                    <button type="submit" class="btn-primary">Submit Application</button>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                    <span style="font-size: 14px;">Total Disbursed</span>
+                    <strong style="color: var(--text-main);">₱ 2.4M</strong>
                 </div>
-            </form>
+            </div>
+        </div>
+
+        <div class="card" style="padding: 24px;">
+            <h5 style="margin-bottom: 15px; font-size: 14px;">Quick Actions</h5>
+            <button class="btn-secondary" style="width: 100%; margin-bottom: 10px;">
+                <i class="fas fa-file-export"></i> Export Report
+            </button>
+            <button class="btn-secondary" style="width: 100%;">
+                <i class="fas fa-chart-pie"></i> View Analytics
+            </button>
         </div>
     </div>
+</div>
 
-    <script src="../../../js/main.js"></script>
-    <script>
-        const appModal = document.getElementById('appModal');
-        const approvalModal = document.getElementById('approvalModal');
+<?php 
+$additionalJS = '<script>
+    // Placeholder for future functionality
+    console.log("Incentives & Assistance page loaded");
+</script>';
 
-        function openAppModal(program) {
-            document.getElementById('modalTitle').innerText = 'Apply for: ' + program;
-            appModal.style.display = 'flex';
-        }
-        function closeAppModal() { appModal.style.display = 'none'; }
-
-        function openApprovalModal(id, enterprise, amount) {
-            document.getElementById('appID').innerText = id;
-            document.getElementById('reviewEnterprise').innerText = enterprise;
-            document.getElementById('reviewAmount').innerText = amount;
-            approvalModal.style.display = 'flex';
-        }
-        function closeApprovalModal() { approvalModal.style.display = 'none'; }
-
-        window.onclick = function (e) {
-            if (e.target == appModal) closeAppModal();
-            if (e.target == approvalModal) closeApprovalModal();
-        }
-    </script>
-</body>
-
-</html>
+include '../layouts/footer.php'; 
+?>

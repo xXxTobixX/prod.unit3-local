@@ -45,6 +45,10 @@ if (empty($activities)) {
     $activities = array_slice($activities, 0, 4);
 }
 
+// 4. Notifications
+$notifications = getUnreadNotifications();
+$notifCount = count($notifications);
+
 // Helpers for Checklist
 function getStatusForChecklist($docs, $type) {
     foreach($docs as $d) {
@@ -96,8 +100,8 @@ function getStatusForChecklist($docs, $type) {
                 <div class="nav-divider"></div>
 
                 <ul>
-                    <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
-                    <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+                    <li><a href="pages/profile-management.php"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+                    <li><a href="pages/help-center.php"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
                     <li class="logout"><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
             </nav>
@@ -126,14 +130,19 @@ function getStatusForChecklist($docs, $type) {
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">2</span>
+                        <span class="badge" style="<?php echo $notifCount > 0 ? '' : 'display: none;'; ?>"><?php echo $notifCount; ?></span>
                     </div>
                     <div class="user-profile">
                         <div class="user-info">
                             <span class="user-name"><?php echo htmlspecialchars(html_entity_decode($_SESSION['user_name'], ENT_QUOTES, 'UTF-8')); ?></span>
                             <span class="user-role">Business Owner</span>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode(html_entity_decode($_SESSION['user_name'], ENT_QUOTES, 'UTF-8')); ?>&background=00205B&color=fff"
+                        <?php 
+                            $topbarLogo = !empty($_SESSION['business_logo']) 
+                                ? '../../' . $_SESSION['business_logo'] 
+                                : "https://ui-avatars.com/api/?name=" . urlencode(html_entity_decode($_SESSION['user_name'], ENT_QUOTES, 'UTF-8')) . "&background=00205B&color=fff";
+                        ?>
+                        <img src="<?php echo $topbarLogo; ?>"
                             alt="User Avatar" class="avatar">
                     </div>
                 </div>

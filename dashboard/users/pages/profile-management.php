@@ -3,6 +3,9 @@ require_once '../../../includes/init.php';
 if (!isLoggedIn()) { redirect('../../../login.php'); } 
 if (!$_SESSION['profile_completed']) { redirect('../../../complete-profile.php'); } 
 
+$unreadNotifs = getUnreadNotifications();
+$notifCount = count($unreadNotifs);
+
 $userId = $_SESSION['user_id'];
 $db = db();
 
@@ -26,8 +29,9 @@ $documents = $db->fetchAll($docsFullQuery, ['id' => $userId]);
 
 // Helper to get doc by type
 function getDocByType($docs, $type) {
+    $sanitizedType = sanitize($type);
     foreach ($docs as $doc) {
-        if ($doc['document_type'] === $type) return $doc;
+        if ($doc['document_type'] === $type || $doc['document_type'] === $sanitizedType) return $doc;
     }
     return null;
 }
@@ -269,9 +273,9 @@ $requiredDocs = [
             color: white;
         }
 
-        /* Plain Quick Action Buttons */
+        /* Premium Quick Action Buttons */
         .btn-quick-action {
-            background: var(--bg-color);
+            background: var(--card-bg);
             color: var(--text-main);
             border: 1px solid var(--border-color);
             padding: 12px 16px;
@@ -281,29 +285,69 @@ $requiredDocs = [
             cursor: pointer;
             display: flex;
             align-items: center;
-            transition: background 0.2s;
+            justify-content: space-between;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             width: 100%;
             text-align: left;
+            margin-bottom: 5px;
         }
 
         .btn-quick-action:hover {
-            background: var(--border-color);
+            transform: translateY(-3px) scale(1.01);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            border-color: var(--primary-color);
         }
 
-        .btn-quick-action i {
-            margin-right: 12px;
-            width: 20px;
-            text-align: center;
+        .btn-quick-action .action-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn-quick-action i:first-child {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            font-size: 14px;
+            background: rgba(0, 32, 91, 0.05);
+            color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .btn-quick-action:hover i:first-child {
+            background: var(--primary-color);
+            color: white;
+            transform: rotate(5deg);
+        }
+
+        .btn-quick-action .chevron {
+            font-size: 10px;
             color: var(--text-muted);
+            opacity: 0.5;
+            transition: all 0.3s ease;
         }
 
-        .btn-quick-action.danger {
-            color: var(--danger-color);
+        .btn-quick-action:hover .chevron {
+            transform: translateX(3px);
+            color: var(--primary-color);
+            opacity: 1;
         }
 
-        .btn-quick-action.danger i {
-            color: var(--danger-color);
-        }
+        /* Distinct Action Colors */
+        .btn-quick-action.password:hover { border-color: #3b82f6; }
+        .btn-quick-action.password i:first-child { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .btn-quick-action.password:hover i:first-child { background: #3b82f6; }
+
+        .btn-quick-action.security:hover { border-color: #f59e0b; }
+        .btn-quick-action.security i:first-child { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .btn-quick-action.security:hover i:first-child { background: #f59e0b; }
+
+        .btn-quick-action.danger:hover { border-color: #ef4444; color: #ef4444; }
+        .btn-quick-action.danger i:first-child { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .btn-quick-action.danger:hover i:first-child { background: #ef4444; }
 
         /* Dark mode specific overrides */
         body.dark-mode .form-group input,
@@ -335,45 +379,224 @@ $requiredDocs = [
             top: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
             align-items: center;
             justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
         .modal.active {
             display: flex;
+            opacity: 1;
         }
 
         .modal-content {
             background: var(--card-bg);
-            padding: 30px;
-            border-radius: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 550px;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95) translateY(20px);
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
             border: 1px solid var(--border-color);
-            box-shadow: var(--shadow-lg);
-            animation: modalSlideUp 0.3s ease-out;
+            overflow: hidden;
+            padding: 0;
         }
 
-        @keyframes modalSlideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .modal.active .modal-content {
+            transform: scale(1) translateY(0);
         }
 
         .modal-header {
+            padding: 20px 32px;
+            background: linear-gradient(to right, var(--primary-color), var(--primary-light));
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
+            color: white;
+            margin-bottom: 0;
+        }
+
+        body.dark-mode .modal-header {
+            background: linear-gradient(to right, #1e293b, #334155);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            margin: 0;
         }
 
         .close-modal {
-            background: none;
+            background: rgba(255, 255, 255, 0.1);
             border: none;
-            font-size: 20px;
-            color: var(--text-muted);
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .close-modal:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        /* Toggle Switch Styling */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #cbd5e1;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        input:checked + .slider {
+            background-color: #10b981;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #10b981;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        .modal-body {
+            padding: 32px;
+            background: var(--bg-color);
+        }
+
+        /* File Upload Styling */
+        .file-upload-wrapper {
+            position: relative;
+            width: 100%;
+            padding: 40px 20px;
+            border: 2px dashed var(--border-color);
+            border-radius: 16px;
+            background: var(--card-bg);
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-upload-wrapper:hover {
+            border-color: var(--primary-color);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        body.dark-mode .file-upload-wrapper:hover {
+            border-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.05);
+        }
+
+        .file-upload-wrapper i {
+            font-size: 40px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .file-upload-wrapper p {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-main);
+            font-weight: 500;
+        }
+
+        .file-upload-wrapper span {
+            display: block;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .modal-footer {
+            padding: 24px 32px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-cancel {
+            padding: 12px 24px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-main);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn {
+            padding: 12px 32px;
+            border-radius: 10px;
+            border: none;
+            background: var(--primary-color);
+            color: white;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+        
+        body.dark-mode .submit-btn {
+            background: #3b82f6;
         }
     </style>
 </head>
@@ -407,8 +630,8 @@ $requiredDocs = [
                 <div class="nav-divider"></div>
 
                 <ul>
-                    <li><a href="#"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
-                    <li><a href="#"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
+                    <li><a href="profile-management.php"><i class="fas fa-cog"></i> <span>Settings</span></a></li>
+                    <li><a href="help-center.php"><i class="fas fa-question-circle"></i> <span>Help Center</span></a></li>
                     <li class="logout"><a href="#"><i class="fas fa-sign-out-alt"></i> <span>Logout</span></a></li>
                 </ul>
             </nav>
@@ -431,15 +654,20 @@ $requiredDocs = [
                     </div>
                     <div class="notifications">
                         <i class="fas fa-bell"></i>
-                        <span class="badge">2</span>
+                        <span class="badge" style="<?php echo $notifCount > 0 ? '' : 'display: none;'; ?>"><?php echo $notifCount; ?></span>
                     </div>
                     <div class="user-profile">
                         <div class="user-info">
                             <span class="user-name"><?php echo htmlspecialchars($fullName); ?></span>
                             <span class="user-role">Business Owner</span>
                         </div>
-                        <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($fullName); ?>&background=00205B&color=fff"
-                            alt="User Avatar" class="avatar">
+                        <?php 
+                            $topbarLogo = !empty($_SESSION['business_logo']) 
+                                ? '../../../' . $_SESSION['business_logo'] 
+                                : "https://ui-avatars.com/api/?name=" . urlencode($fullName) . "&background=00205B&color=fff";
+                        ?>
+                        <img src="<?php echo $topbarLogo; ?>"
+                            alt="User Avatar" class="avatar" id="topbar-avatar">
                     </div>
                     <button class="btn-primary" onclick="alert('Changes Saved Successfully!')">Save
                         Changes</button>
@@ -450,13 +678,19 @@ $requiredDocs = [
                 <div class="profile-container">
                     <div class="profile-side">
                         <div class="avatar-upload">
-                            <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($user['business_name']); ?>&background=00205B&color=fff&size=200"
-                                alt="Enterprise Logo" class="profile-avatar-large">
+                            <?php 
+                                $logoSrc = !empty($user['logo_path']) 
+                                    ? '../../../' . $user['logo_path'] 
+                                    : "https://ui-avatars.com/api/?name=" . urlencode($user['business_name']) . "&background=00205B&color=fff&size=200";
+                            ?>
+                            <img src="<?php echo $logoSrc; ?>"
+                                alt="Enterprise Logo" class="profile-avatar-large" id="business-logo-preview">
                             <h4 style="font-size: 18px; font-weight: 700;"><?php echo htmlspecialchars($user['business_name']); ?></h4>
                             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 25px;">
                                 <i class="fas fa-calendar-alt"></i> Founded: <?php echo htmlspecialchars($user['year_started'] ?? 'N/A'); ?>
                             </p>
-                            <button class="btn-primary" style="width: 100%;">
+                            <input type="file" id="logo-input" style="display: none;" accept="image/*">
+                            <button class="btn-primary" style="width: 100%;" onclick="document.getElementById('logo-input').click()">
                                 <i class="fas fa-camera"></i> Change Logo
                             </button>
                         </div>
@@ -466,17 +700,29 @@ $requiredDocs = [
                                 <i class="fas fa-bolt"></i>
                                 <h4 style="font-size: 16px; font-weight: 700;">Quick Actions</h4>
                             </div>
-                            <div style="display: flex; flex-direction: column; gap: 15px;">
-                                <button class="btn-quick-action">
-                                    <i class="fas fa-key"></i> Change Password
+                            <div style="display: flex; flex-direction: column; gap: 8px;">
+                                <button class="btn-quick-action password" onclick="openChangePassword()">
+                                    <span class="action-left">
+                                        <i class="fas fa-key"></i>
+                                        <span>Change Password</span>
+                                    </span>
+                                    <i class="fas fa-chevron-right chevron"></i>
                                 </button>
-                                <button class="btn-quick-action">
-                                    <i class="fas fa-shield-alt"></i> 2FA Settings
+                                <button class="btn-quick-action security" onclick="open2FASettings()">
+                                    <span class="action-left">
+                                        <i class="fas fa-shield-alt"></i>
+                                        <span>2FA Settings</span>
+                                    </span>
+                                    <i class="fas fa-chevron-right chevron"></i>
                                 </button>
                                 <div
-                                    style="margin-top: 10px; padding-top: 20px; border-top: 1px solid var(--border-color);">
-                                    <button class="btn-quick-action danger">
-                                        <i class="fas fa-trash-alt"></i> Deactivate Account
+                                    style="margin-top: 5px; padding-top: 15px; border-top: 1px solid var(--border-color);">
+                                    <button class="btn-quick-action danger" onclick="confirmDeactivate()">
+                                        <span class="action-left">
+                                            <i class="fas fa-trash-alt"></i>
+                                            <span>Deactivate Account</span>
+                                        </span>
+                                        <i class="fas fa-chevron-right chevron"></i>
                                     </button>
                                 </div>
                             </div>
@@ -595,10 +841,10 @@ $requiredDocs = [
                                         <?php if ($existingDoc): ?>
                                             <div style="display: flex; gap: 10px;">
                                                 <a href="../../../<?php echo $existingDoc['file_path']; ?>" target="_blank" class="btn-action-outline">View</a>
-                                                <button class="btn-action-outline" onclick="openUploadModal('<?php echo $req['type']; ?>')">Replace</button>
+                                                <button class="btn-action-outline" onclick="openUploadModal('<?php echo addslashes($req['type']); ?>')">Replace</button>
                                             </div>
                                         <?php else: ?>
-                                            <button class="btn-primary" style="padding: 10px 18px; font-size: 12px;" onclick="openUploadModal('<?php echo $req['type']; ?>')">
+                                            <button class="btn-primary" style="padding: 10px 18px; font-size: 12px;" onclick="openUploadModal('<?php echo addslashes($req['type']); ?>')">
                                                 <i class="fas fa-upload"></i> Upload File
                                             </button>
                                         <?php endif; ?>
@@ -619,22 +865,319 @@ $requiredDocs = [
                 <h3>Upload <span id="modal-doc-type">Document</span></h3>
                 <button class="close-modal" onclick="closeModal()">&times;</button>
             </div>
-            <form id="uploadForm">
-                <input type="hidden" name="document_type" id="hidden-doc-type">
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label>Select File (PDF, JPG, PNG - Max 5MB)</label>
-                    <input type="file" name="document_file" id="document_file" required accept=".pdf,.jpg,.jpeg,.png">
-                </div>
-                <div style="display: flex; gap: 15px; margin-top: 30px;">
-                    <button type="button" class="btn-secondary" style="flex: 1;" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn-primary" style="flex: 1;">Upload Document</button>
-                </div>
-            </form>
+            <div class="modal-body">
+                <form id="uploadForm">
+                    <input type="hidden" name="document_type" id="hidden-doc-type">
+                    <div class="file-upload-wrapper">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Click to browse or drag and drop</p>
+                        <span>Supported formats: PDF, JPG, PNG (Max 5MB)</span>
+                        <input type="file" name="document_file" id="document_file" required accept=".pdf,.jpg,.jpeg,.png">
+                    </div>
+                    <div id="file-name-preview" style="margin-top: 15px; font-size: 13px; color: var(--success-color); font-weight: 600; display: none; text-align: center;">
+                        <i class="fas fa-file-alt"></i> <span id="selected-file-name"></span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button type="submit" form="uploadForm" class="submit-btn" id="uploadBtn">Upload Document</button>
+            </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Logo Upload Logic
+        document.getElementById('logo-input').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            // Preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('business-logo-preview').src = e.target.result;
+            }
+            reader.readAsDataURL(file);
+
+            // Upload
+            const formData = new FormData();
+            formData.append('logo_file', file);
+            formData.append('action', 'upload-logo');
+
+            fetch('../../../ajax/profile.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success!',
+                        text: data.message,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    // Ensure preview uses the final server path
+                    if (data.logo_url) {
+                        document.getElementById('business-logo-preview').src = data.logo_url;
+                    }
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Upload Failed',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'An unexpected error occurred.'
+                });
+            });
+        });
+
+        // Helper for theme-aware SweetAlert2
+        function getSwalTheme() {
+            const isDark = document.body.classList.contains('dark-mode');
+            return {
+                background: isDark ? '#1e293b' : '#ffffff',
+                color: isDark ? '#f1f5f9' : '#1e293b',
+                confirmButtonColor: isDark ? '#3b82f6' : '#00205B',
+                cancelButtonColor: isDark ? '#475569' : '#64748b'
+            };
+        }
+
+        function openChangePassword() {
+            const theme = getSwalTheme();
+            const isDark = document.body.classList.contains('dark-mode');
+            
+            Swal.fire({
+                title: 'Change Password',
+                background: theme.background,
+                color: theme.color,
+                html: `
+                    <div style="text-align: left;">
+                        <label style="display: block; margin-bottom: 5px; font-size: 14px; color: ${theme.color}">Current Password</label>
+                        <input type="password" id="current-pw" class="swal2-input" placeholder="Current password" 
+                            style="width: 80%; margin: 5px auto 15px auto; display: block; background: ${isDark ? '#334155' : '#fff'}; color: ${theme.color}; border: 1px solid ${isDark ? '#475569' : '#d9d9d9'}">
+                        
+                        <label style="display: block; margin-bottom: 5px; font-size: 14px; color: ${theme.color}">New Password</label>
+                        <input type="password" id="new-pw" class="swal2-input" placeholder="New password" 
+                            style="width: 80%; margin: 5px auto 15px auto; display: block; background: ${isDark ? '#334155' : '#fff'}; color: ${theme.color}; border: 1px solid ${isDark ? '#475569' : '#d9d9d9'}">
+                        
+                        <label style="display: block; margin-bottom: 5px; font-size: 14px; color: ${theme.color}">Confirm New Password</label>
+                        <input type="password" id="confirm-pw" class="swal2-input" placeholder="Confirm new password" 
+                            style="width: 80%; margin: 5px auto 5px auto; display: block; background: ${isDark ? '#334155' : '#fff'}; color: ${theme.color}; border: 1px solid ${isDark ? '#475569' : '#d9d9d9'}">
+                    </div>
+                `,
+                confirmButtonText: 'Update Password',
+                confirmButtonColor: theme.confirmButtonColor,
+                cancelButtonColor: theme.cancelButtonColor,
+                showCancelButton: true,
+                focusConfirm: false,
+                preConfirm: () => {
+                    const current = Swal.getPopup().querySelector('#current-pw').value;
+                    const newPw = Swal.getPopup().querySelector('#new-pw').value;
+                    const confirm = Swal.getPopup().querySelector('#confirm-pw').value;
+                    
+                    if (!current || !newPw || !confirm) {
+                        Swal.showValidationMessage(`Please fill in all fields`);
+                        return false;
+                    }
+                    if (newPw !== confirm) {
+                        Swal.showValidationMessage(`New passwords do not match`);
+                        return false;
+                    }
+                    if (newPw.length < 6) {
+                        Swal.showValidationMessage(`Password must be at least 6 characters`);
+                        return false;
+                    }
+                    return { current, newPw };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('action', 'change-password');
+                    formData.append('current_password', result.value.current);
+                    formData.append('new_password', result.value.newPw);
+
+                    fetch('../../../ajax/auth.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success!',
+                                text: data.message,
+                                background: theme.background,
+                                color: theme.color,
+                                confirmButtonColor: theme.confirmButtonColor
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message,
+                                background: theme.background,
+                                color: theme.color,
+                                confirmButtonColor: theme.confirmButtonColor
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function open2FASettings() {
+            const theme = getSwalTheme();
+            const currentStatus = <?php echo (int)($user['two_factor_enabled'] ?? 1); ?>;
+            const isDark = document.body.classList.contains('dark-mode');
+
+            Swal.fire({
+                title: '2FA Settings',
+                background: theme.background,
+                color: theme.color,
+                html: `
+                    <div style="text-align: left; padding: 10px;">
+                        <p style="margin-bottom: 20px; font-size: 14px; opacity: 0.8; line-height: 1.5;">
+                            Two-Factor Authentication adds an extra layer of security. When enabled, a verification code will be sent to your email for every login attempt.
+                        </p>
+                        
+                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 16px; background: ${isDark ? 'rgba(255,255,255,0.05)' : '#f8fafc'}; border-radius: 12px; border: 1px solid ${isDark ? '#334155' : '#e2e8f0'}">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 10px; background: rgba(59, 130, 246, 0.1); color: #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 18px;">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <h4 style="margin: 0; font-size: 15px; font-weight: 600;">Email OTP</h4>
+                                    <p style="margin: 0; font-size: 12px; color: ${isDark ? '#94a3b8' : '#64748b'}">Receive code via Email</p>
+                                </div>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="2fa-toggle" ${currentStatus ? 'checked' : ''}>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                `,
+                showConfirmButton: true,
+                showCancelButton: true,
+                confirmButtonText: 'Save Changes',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: theme.confirmButtonColor,
+                cancelButtonColor: theme.cancelButtonColor,
+                showCloseButton: true,
+                preConfirm: () => {
+                    const isEnabled = Swal.getPopup().querySelector('#2fa-toggle').checked ? 1 : 0;
+                    return { isEnabled };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const isEnabled = result.value.isEnabled;
+                    
+                    const formData = new FormData();
+                    formData.append('action', 'update-2fa');
+                    formData.append('enabled', isEnabled);
+
+                    fetch('../../../ajax/auth.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Updated!',
+                                text: data.message,
+                                background: theme.background,
+                                color: theme.color,
+                                confirmButtonColor: theme.confirmButtonColor
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Update Failed',
+                                text: data.message,
+                                background: theme.background,
+                                color: theme.color,
+                                confirmButtonColor: theme.confirmButtonColor
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.error('2FA Update Error:', err);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'An unexpected error occurred.',
+                            background: theme.background,
+                            color: theme.color
+                        });
+                    });
+                }
+            });
+        }
+
+        function confirmDeactivate() {
+            const theme = getSwalTheme();
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "Your account will be deactivated. You will need to contact support to reactivate it.",
+                icon: 'warning',
+                background: theme.background,
+                color: theme.color,
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: theme.cancelButtonColor,
+                confirmButtonText: 'Yes, deactivate it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('action', 'deactivate-account');
+
+                    fetch('../../../ajax/auth.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                title: 'Deactivated',
+                                text: 'Your account has been deactivated.',
+                                icon: 'success',
+                                background: theme.background,
+                                color: theme.color,
+                                confirmButtonColor: theme.confirmButtonColor
+                            }).then(() => {
+                                window.location.href = '../../../logout.php';
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: data.message,
+                                background: theme.background,
+                                color: theme.color,
+                                confirmButtonColor: theme.confirmButtonColor
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
         function openUploadModal(type) {
             document.getElementById('modal-doc-type').textContent = type;
             document.getElementById('hidden-doc-type').value = type;
@@ -644,7 +1187,15 @@ $requiredDocs = [
         function closeModal() {
             document.getElementById('uploadModal').classList.remove('active');
             document.getElementById('uploadForm').reset();
+            document.getElementById('file-name-preview').style.display = 'none';
         }
+
+        document.getElementById('document_file').addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                document.getElementById('selected-file-name').textContent = this.files[0].name;
+                document.getElementById('file-name-preview').style.display = 'block';
+            }
+        });
 
         document.getElementById('uploadForm').addEventListener('submit', function(e) {
             e.preventDefault();
